@@ -1,0 +1,44 @@
+# QR code with detailed finder pattern styling
+
+[qr]
+data = "https://example.com"
+error_correction = "H"
+
+[style]
+size = 512
+background = "#f8f9fa"
+quiet_zone = 4
+
+[style.modules]
+shape = "dot"
+color = "#2d3436"
+size = 0.7
+
+# Detailed finder pattern styling - each layer separate
+[style.finder_patterns.outer]
+shape = "rounded-square"
+color = "#0984e3"
+corner_radius = 0.3
+
+[style.finder_patterns.middle]
+shape = "rounded-square"
+color = "#f8f9fa"
+corner_radius = 0.2
+
+[style.finder_patterns.center]
+shape = "circle"
+color = "#e17055"
+
+# Alignment patterns
+[style.alignment.outer]
+shape = "circle"
+color = "#0984e3"
+
+[style.alignment.center]
+shape = "circle"
+color = "#e17055"
+
+# Timing patterns
+[style.timing]
+shape = "circle"
+color = "#636e72"

@@ -1,0 +1,27 @@
+# QR code with colors sampled from an image
+
+[qr]
+data = "https://example.com"
+error_correction = "H"
+
+[style]
+size = 512
+background = "#ffffff"
+
+[style.modules]
+shape = "circle"
+size = 0.9
+
+[style.modules.color]
+type = "image"
+path = "./sunset.jpg"
+
+[style.finder_patterns]
+shape = "rounded-square"
+color = "#1a1a2e"
+
+[style.logo]
+path = "./logo.png"
+size = 0.2
+padding = 0.02
+background = "#ffffff"

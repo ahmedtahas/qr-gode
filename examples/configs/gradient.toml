@@ -1,0 +1,26 @@
+# QR code with gradient colors
+
+[qr]
+data = "https://example.com"
+error_correction = "H"
+
+[style]
+size = 512
+background = "#ffffff"
+
+[style.modules]
+shape = "circle"
+size = 0.85
+
+[style.modules.color]
+type = "linear-gradient"
+angle = 45
+stops = ["#ff6b6b", "#4ecdc4"]
+
+[style.finder_patterns]
+shape = "rounded-square"
+
+[style.finder_patterns.color]
+type = "linear-gradient"
+angle = 135
+stops = ["#ff6b6b", "#4ecdc4"]

@@ -1,0 +1,12 @@
+# Minimal QR code config - just the essentials
+
+[qr]
+data = "https://example.com"
+error_correction = "H"
+
+[style]
+size = 512
+background = "#ffffff"
+
+[style.modules]
+color = "#000000"
