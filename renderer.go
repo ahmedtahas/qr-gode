@@ -1,4 +1,4 @@
-package qrcode
+package qrgode
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"image"
 	_ "image/jpeg"
-	_ "image/png"
+	"image/png"
 	"os"
 	"regexp"
 	"strconv"
@@ -22,13 +22,29 @@ const (
 	logoMaxSize = 0.30 // Maximum 30% of QR
 )
 
+// hasLogo returns true if a logo is configured (either as image or path)
+func (r *Renderer) hasLogo() bool {
+	logo := r.config.Logo
+	return logo != nil && (logo.Image != nil || logo.Path != "")
+}
+
+// getLogoSourceDimensions returns the original dimensions of the logo source
+func (r *Renderer) getLogoSourceDimensions() (int, int, error) {
+	logo := r.config.Logo
+	if logo.Image != nil {
+		bounds := logo.Image.Bounds()
+		return bounds.Dx(), bounds.Dy(), nil
+	}
+	return getLogoDimensions(logo.Path)
+}
+
 // calculateLogoDimensions returns logo width, height, and padding in pixels
 func (r *Renderer) calculateLogoDimensions() (float64, float64, float64, error) {
-	logo := r.config.Logo
-	if logo == nil || logo.Path == "" {
+	if !r.hasLogo() {
 		return 0, 0, 0, nil
 	}
 
+	logo := r.config.Logo
 	qrSize := float64(r.config.Size)
 	var logoWidth, logoHeight float64
 
@@ -36,21 +52,21 @@ func (r *Renderer) calculateLogoDimensions() (float64, float64, float64, error) 
 		logoWidth = float64(logo.Width)
 		logoHeight = float64(logo.Height)
 	} else if logo.Width > 0 {
-		imgW, imgH, err := getLogoDimensions(logo.Path)
+		imgW, imgH, err := r.getLogoSourceDimensions()
 		if err != nil {
 			return 0, 0, 0, err
 		}
 		logoWidth = float64(logo.Width)
 		logoHeight = logoWidth * float64(imgH) / float64(imgW)
 	} else if logo.Height > 0 {
-		imgW, imgH, err := getLogoDimensions(logo.Path)
+		imgW, imgH, err := r.getLogoSourceDimensions()
 		if err != nil {
 			return 0, 0, 0, err
 		}
 		logoHeight = float64(logo.Height)
 		logoWidth = logoHeight * float64(imgW) / float64(imgH)
 	} else {
-		imgW, imgH, err := getLogoDimensions(logo.Path)
+		imgW, imgH, err := r.getLogoSourceDimensions()
 		if err != nil {
 			return 0, 0, 0, err
 		}
@@ -112,7 +128,7 @@ func (r *Renderer) renderWithShapes() ([]byte, error) {
 	// Calculate logo exclusion zone (in module coordinates)
 	var logoMinX, logoMinY, logoMaxX, logoMaxY int
 	hasLogoZone := false
-	if r.config.Logo != nil && r.config.Logo.Path != "" {
+	if r.hasLogo() {
 		logoWidth, logoHeight, padding, err := r.calculateLogoDimensions()
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate logo dimensions: %w", err)
@@ -205,7 +221,7 @@ func (r *Renderer) renderWithShapes() ([]byte, error) {
 	buf.WriteString("\n")
 
 	// Render logo if configured
-	if r.config.Logo != nil && r.config.Logo.Path != "" {
+	if r.hasLogo() {
 		logoSVG, err := r.renderLogo()
 		if err != nil {
 			return nil, err
@@ -230,7 +246,7 @@ func (r *Renderer) renderWithImages() ([]byte, error) {
 	// Calculate logo exclusion zone (in module coordinates)
 	var logoMinX, logoMinY, logoMaxX, logoMaxY int
 	hasLogoZone := false
-	if r.config.Logo != nil && r.config.Logo.Path != "" {
+	if r.hasLogo() {
 		logoWidth, logoHeight, padding, err := r.calculateLogoDimensions()
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate logo dimensions: %w", err)
@@ -381,7 +397,7 @@ func (r *Renderer) renderWithImages() ([]byte, error) {
 	}
 
 	// Render logo if configured
-	if r.config.Logo != nil && r.config.Logo.Path != "" {
+	if r.hasLogo() {
 		logoSVG, err := r.renderLogo()
 		if err != nil {
 			return nil, err
@@ -463,13 +479,14 @@ func getLogoDimensions(path string) (int, int, error) {
 
 // renderLogo renders the logo in the center of the QR code
 func (r *Renderer) renderLogo() (string, error) {
-	logo := r.config.Logo
-	if logo == nil || logo.Path == "" {
+	if !r.hasLogo() {
 		return "", nil
 	}
 
-	// Load logo as data URI
-	logoURI, err := loadImageAsDataURI(logo.Path)
+	logo := r.config.Logo
+
+	// Get logo as data URI (from image.Image or file path)
+	logoURI, err := r.getLogoDataURI()
 	if err != nil {
 		return "", fmt.Errorf("failed to load logo: %w", err)
 	}
@@ -510,6 +527,29 @@ func (r *Renderer) renderLogo() (string, error) {
 	buf.WriteString("\n")
 
 	return buf.String(), nil
+}
+
+// getLogoDataURI returns the logo as a data URI, from either image.Image or file path
+func (r *Renderer) getLogoDataURI() (string, error) {
+	logo := r.config.Logo
+
+	// If we have an in-memory image, encode it to PNG
+	if logo.Image != nil {
+		return encodeImageToDataURI(logo.Image)
+	}
+
+	// Otherwise load from file path
+	return loadImageAsDataURI(logo.Path)
+}
+
+// encodeImageToDataURI encodes an image.Image to a PNG data URI
+func encodeImageToDataURI(img image.Image) (string, error) {
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		return "", err
+	}
+	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return "data:image/png;base64," + encoded, nil
 }
 
 // loadImageAsDataURI reads a PNG file and returns a data URI

@@ -1,4 +1,4 @@
-package qrcode
+package qrgode
 
 import (
 	"os"

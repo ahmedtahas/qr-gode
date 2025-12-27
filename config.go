@@ -1,6 +1,10 @@
-package qrcode
+package qrgode
 
-import "github.com/ahmedtahas/qr-gode/internal/colors"
+import (
+	"image"
+
+	"github.com/ahmedtahas/qr-gode/internal/colors"
+)
 
 // ErrorCorrectionLevel defines the amount of redundancy in the QR code.
 // Higher levels provide more error recovery but result in denser codes.
@@ -107,10 +111,11 @@ type TimingStyle struct {
 
 // LogoConfig defines the logo overlay settings.
 type LogoConfig struct {
-	Path       string // Path to logo image (required)
-	Width      int    // Optional: logo width in pixels (0 = auto-calculate)
-	Height     int    // Optional: logo height in pixels (0 = auto-calculate)
-	Background string // Background color behind logo (hex or "transparent", default white)
+	Path       string      // Path to logo image file
+	Image      image.Image // In-memory logo image (takes precedence over Path)
+	Width      int         // Optional: logo width in pixels (0 = auto-calculate)
+	Height     int         // Optional: logo height in pixels (0 = auto-calculate)
+	Background string      // Background color behind logo (hex or "transparent", default white)
 }
 
 // CustomImages defines custom PNG images for different QR elements.

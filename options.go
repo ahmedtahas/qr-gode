@@ -1,4 +1,4 @@
-package qrcode
+package qrgode
 
 // Option is a functional option for configuring QR generation.
 type Option func(*Config)

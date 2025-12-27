@@ -1,15 +1,15 @@
-package qrcode_test
+package qrgode_test
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/ahmedtahas/qr-gode/pkg/qrcode"
+	"github.com/ahmedtahas/qr-gode"
 )
 
 func Example_basic() {
 	// Simple QR code generation
-	svg, err := qrcode.Generate("https://example.com", nil)
+	svg, err := qrgode.Generate("https://example.com", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,9 +18,9 @@ func Example_basic() {
 
 func Example_builder() {
 	// Using the builder pattern for customization
-	qr := qrcode.New("https://example.com").
+	qr := qrgode.New("https://example.com").
 		Size(512).
-		ErrorCorrection(qrcode.LevelH).
+		ErrorCorrection(qrgode.LevelH).
 		Shape("circle").
 		Foreground("#3498db").
 		Background("#ffffff")
@@ -34,7 +34,7 @@ func Example_builder() {
 
 func Example_gradient() {
 	// Linear gradient
-	qr := qrcode.New("https://example.com").
+	qr := qrgode.New("https://example.com").
 		Size(512).
 		LinearGradient(45, "#ff0000", "#00ff00", "#0000ff").
 		Shape("rounded")
@@ -48,7 +48,7 @@ func Example_gradient() {
 
 func Example_radialGradient() {
 	// Radial gradient from center
-	qr := qrcode.New("https://example.com").
+	qr := qrgode.New("https://example.com").
 		Size(512).
 		RadialGradient(0.5, 0.5, "#ff6b6b", "#4ecdc4").
 		Shape("dot")
@@ -62,7 +62,7 @@ func Example_radialGradient() {
 
 func Example_customImages() {
 	// Using custom images for QR elements
-	qr := qrcode.New("https://example.com").
+	qr := qrgode.New("https://example.com").
 		Size(512).
 		ModuleImage("dot.png").
 		FinderImage("finder.png").
@@ -74,7 +74,7 @@ func Example_customImages() {
 
 func Example_saveToFile() {
 	// Save directly to file
-	err := qrcode.New("https://example.com").
+	err := qrgode.New("https://example.com").
 		Size(1024).
 		Shape("diamond").
 		Foreground("#2c3e50").
@@ -87,14 +87,14 @@ func Example_saveToFile() {
 
 func Example_advancedConfig() {
 	// For advanced usage, access the underlying config
-	qr := qrcode.New("https://example.com")
+	qr := qrgode.New("https://example.com")
 	cfg := qr.GetConfig()
 
 	// Modify config directly
 	cfg.Size = 800
 	cfg.QuietZone = 2
 	cfg.Modules.Shape = "star"
-	cfg.Modules.Color = qrcode.NewLinearGradientColor(90, []string{"#e74c3c", "#9b59b6", "#3498db"})
+	cfg.Modules.Color = qrgode.NewLinearGradientColor(90, []string{"#e74c3c", "#9b59b6", "#3498db"})
 
 	svg, err := qr.SVG()
 	if err != nil {

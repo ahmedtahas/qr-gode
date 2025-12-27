@@ -1,6 +1,7 @@
-package qrcode
+package qrgode
 
 import (
+	"image"
 	"os"
 	"path/filepath"
 	"strings"
@@ -145,9 +146,8 @@ func (q *QRCode) AlignmentImage(path string) *QRCode {
 	return q
 }
 
-// Logo sets a logo image to display in the center of the QR code.
+// Logo sets a logo image from a file path to display in the center of the QR code.
 // The logo will have a white background padding by default.
-// Size is a fraction of QR size (0.0-1.0), default 0.2 (20%).
 func (q *QRCode) Logo(path string) *QRCode {
 	q.ensureLogo()
 	if err := ValidateLogoImage(path); err != nil {
@@ -155,6 +155,18 @@ func (q *QRCode) Logo(path string) *QRCode {
 	} else {
 		q.config.Logo.Path = path
 	}
+	return q
+}
+
+// LogoImage sets an in-memory image as the logo to display in the center of the QR code.
+// This takes precedence over Logo() if both are set.
+// The logo will have a white background padding by default.
+func (q *QRCode) LogoImage(img image.Image) *QRCode {
+	q.ensureLogo()
+	if img == nil {
+		return q
+	}
+	q.config.Logo.Image = img
 	return q
 }
 

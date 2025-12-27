@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ahmedtahas/qr-gode"
 	"github.com/ahmedtahas/qr-gode/internal/colors"
-	"github.com/ahmedtahas/qr-gode/pkg/qrcode"
 )
 
 func main() {
@@ -55,7 +55,7 @@ func main() {
 	data := flag.Arg(0)
 
 	// Build config
-	cfg := qrcode.DefaultConfig()
+	cfg := qrgode.DefaultConfig()
 	cfg.Size = *size
 	cfg.Modules.Shape = *shape
 	cfg.Background = colors.NewSolid(*bgColor)
@@ -63,13 +63,13 @@ func main() {
 	// Set error correction level
 	switch strings.ToUpper(*ecl) {
 	case "L":
-		cfg.ErrorCorrection = qrcode.LevelL
+		cfg.ErrorCorrection = qrgode.LevelL
 	case "M":
-		cfg.ErrorCorrection = qrcode.LevelM
+		cfg.ErrorCorrection = qrgode.LevelM
 	case "Q":
-		cfg.ErrorCorrection = qrcode.LevelQ
+		cfg.ErrorCorrection = qrgode.LevelQ
 	case "H":
-		cfg.ErrorCorrection = qrcode.LevelH
+		cfg.ErrorCorrection = qrgode.LevelH
 	}
 
 	// Set color (gradient or solid)
@@ -89,7 +89,7 @@ func main() {
 
 	// Set custom images if provided
 	if *moduleImg != "" || *finderImg != "" || *alignImg != "" {
-		cfg.Images = &qrcode.CustomImages{
+		cfg.Images = &qrgode.CustomImages{
 			Module:    *moduleImg,
 			Finder:    *finderImg,
 			Alignment: *alignImg,
@@ -98,7 +98,7 @@ func main() {
 
 	// Set logo if provided
 	if *logoImg != "" {
-		cfg.Logo = &qrcode.LogoConfig{
+		cfg.Logo = &qrgode.LogoConfig{
 			Path:   *logoImg,
 			Width:  *logoWidth,
 			Height: *logoHeight,
@@ -106,7 +106,7 @@ func main() {
 	}
 
 	// Generate
-	err := qrcode.GenerateToFile(data, cfg, *output)
+	err := qrgode.GenerateToFile(data, cfg, *output)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
