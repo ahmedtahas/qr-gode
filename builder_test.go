@@ -155,10 +155,10 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestAllShapes(t *testing.T) {
-	shapes := []string{"square", "circle", "rounded", "diamond", "dot", "star", "heart"}
+	shapes := []Shape{ShapeSquare, ShapeCircle, ShapeRounded, ShapeDiamond, ShapeDot, ShapeStar, ShapeHeart}
 
 	for _, shape := range shapes {
-		t.Run(shape, func(t *testing.T) {
+		t.Run(string(shape), func(t *testing.T) {
 			svg, err := New("test").Shape(shape).SVG()
 			if err != nil {
 				t.Fatalf("unexpected error for shape %s: %v", shape, err)

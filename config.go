@@ -17,6 +17,19 @@ const (
 	LevelH                             // ~30% recovery capacity
 )
 
+// Shape defines the module shape for QR code rendering.
+type Shape string
+
+const (
+	ShapeSquare  Shape = "square"  // Default square modules
+	ShapeCircle  Shape = "circle"  // Circular modules
+	ShapeRounded Shape = "rounded" // Rounded corner squares
+	ShapeDiamond Shape = "diamond" // Diamond/rotated squares
+	ShapeDot     Shape = "dot"     // Smaller circular dots
+	ShapeStar    Shape = "star"    // Star shaped modules
+	ShapeHeart   Shape = "heart"   // Heart shaped modules
+)
+
 // Color is an alias to the internal color interface for advanced usage.
 // Most users should use the builder methods like Foreground(), LinearGradient(), etc.
 type Color = colors.Color

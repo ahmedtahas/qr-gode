@@ -56,9 +56,9 @@ func (q *QRCode) ErrorCorrection(level ErrorCorrectionLevel) *QRCode {
 
 // Shape sets the module shape.
 //
-// Available shapes: "square", "circle", "rounded", "diamond", "dot", "star", "heart"
-func (q *QRCode) Shape(shape string) *QRCode {
-	q.config.Modules.Shape = shape
+// Available shapes: ShapeSquare, ShapeCircle, ShapeRounded, ShapeDiamond, ShapeDot, ShapeStar, ShapeHeart
+func (q *QRCode) Shape(shape Shape) *QRCode {
+	q.config.Modules.Shape = string(shape)
 	return q
 }
 
