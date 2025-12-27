@@ -710,7 +710,5 @@ func splitNumbers(s string) []float64 {
 
 // RenderPNG generates a PNG by rasterizing the SVG.
 func (r *Renderer) RenderPNG() ([]byte, error) {
-	// TODO: Implement PNG rasterization
-	// Would need an SVG rasterizer library
-	return nil, fmt.Errorf("PNG rendering not yet implemented")
+	return nil, fmt.Errorf("PNG rendering not supported - use SVG output")
 }

@@ -16,7 +16,7 @@ func TestEdgeCases(t *testing.T) {
 			fn: func() ([]byte, error) {
 				return New("").SVG()
 			},
-			shouldError: true, // TODO: should error but currently doesn't
+			shouldError: true,
 		},
 		{
 			name: "very long data",

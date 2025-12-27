@@ -11,20 +11,6 @@ func (v Version) Size() int {
 	return int(v)*4 + 17
 }
 
-// AlignmentPatternPositions returns the center positions of alignment patterns.
-func (v Version) AlignmentPatternPositions() []int {
-	// TODO: Return alignment pattern positions from lookup table
-	// Version 1 has no alignment patterns
-	// Version 2+ have varying numbers
-	return nil
-}
-
-// TotalCodewords returns the total number of codewords for this version.
-func (v Version) TotalCodewords() int {
-	// TODO: Lookup from capacity table
-	return 0
-}
-
 // DetermineVersion finds the minimum version that can encode the data
 // with the given mode and error correction level.
 func DetermineVersion(dataLen int, mode Mode, ecl ErrorCorrectionLevel) (Version, error) {

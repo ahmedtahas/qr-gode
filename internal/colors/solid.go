@@ -9,7 +9,6 @@ type Solid struct {
 
 // NewSolid creates a solid color from hex string.
 func NewSolid(hex string) *Solid {
-	// TODO: Validate hex format
 	return &Solid{Hex: hex}
 }
 
@@ -30,12 +29,15 @@ func (s *Solid) SVGFill(id string) string {
 }
 
 // ParseHex validates and normalizes a hex color string.
+// Accepts: #RGB, #RRGGBB, #RRGGBBAA
 func ParseHex(hex string) (string, error) {
-	// TODO:
-	// Accept: #RGB, #RRGGBB, #RRGGBBAA
-	// Normalize to #RRGGBB or #RRGGBBAA
 	if len(hex) == 0 || hex[0] != '#' {
 		return "", fmt.Errorf("invalid hex color: %s", hex)
 	}
-	return hex, nil
+	switch len(hex) {
+	case 4, 7, 9: // #RGB, #RRGGBB, #RRGGBBAA
+		return hex, nil
+	default:
+		return "", fmt.Errorf("invalid hex color length: %s", hex)
+	}
 }

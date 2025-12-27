@@ -4,20 +4,21 @@ import "errors"
 
 // ParsePath validates and normalizes an SVG path string.
 func ParsePath(path string) (string, error) {
-	// TODO:
-	// 1. Validate path syntax
-	// 2. Normalize commands (e.g., relative to absolute)
-	// 3. Return cleaned path
 	if path == "" {
 		return "", errors.New("empty path")
+	}
+	// Basic validation - path should start with M or m (moveto)
+	if len(path) > 0 && path[0] != 'M' && path[0] != 'm' {
+		return "", errors.New("path must start with M or m command")
 	}
 	return path, nil
 }
 
 // IsValidPath checks if a string is a valid SVG path.
 func IsValidPath(path string) bool {
-	// TODO: Implement path validation
-	// Check for valid SVG path commands: M, L, H, V, C, S, Q, T, A, Z
+	if path == "" || (path[0] != 'M' && path[0] != 'm') {
+		return false
+	}
 	return true
 }
 

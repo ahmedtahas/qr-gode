@@ -138,12 +138,6 @@ type CustomImages struct {
 	Alignment string // Path to PNG for alignment pattern modules (5x5 squares)
 }
 
-// LoadConfig loads a Config from a TOML file.
-func LoadConfig(path string) (*Config, error) {
-	// TODO: Parse TOML file
-	return nil, nil
-}
-
 // DefaultConfig returns a config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{

@@ -18,12 +18,3 @@ type Color interface {
 	// Could be a color like "#ff0000" or a reference like "url(#gradient-1)".
 	SVGFill(id string) string
 }
-
-// Parse creates a Color from config.
-// Handles solid hex strings and complex color configs.
-func Parse(v any) (Color, error) {
-	// TODO:
-	// If string -> Solid color
-	// If map with "type" -> Gradient or Image
-	return nil, nil
-}
