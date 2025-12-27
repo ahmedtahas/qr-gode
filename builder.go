@@ -229,6 +229,11 @@ func (q *QRCode) Validate() []error {
 // SVG generates and returns the QR code as SVG bytes.
 // Returns an error if validation fails or encoding fails.
 func (q *QRCode) SVG() ([]byte, error) {
+	// Validate data
+	if q.data == "" {
+		return nil, &ValidationError{Field: "Data", Message: "cannot be empty"}
+	}
+
 	// Check for validation errors
 	if errs := q.Validate(); len(errs) > 0 {
 		return nil, errs[0] // Return first error

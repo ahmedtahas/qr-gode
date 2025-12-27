@@ -12,6 +12,10 @@ import (
 // Returns SVG as a byte slice.
 // If cfg is nil, DefaultConfig() is used.
 func Generate(data string, cfg *Config) ([]byte, error) {
+	if data == "" {
+		return nil, &ValidationError{Field: "Data", Message: "cannot be empty"}
+	}
+
 	if cfg == nil {
 		cfg = DefaultConfig()
 	}
