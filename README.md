@@ -7,7 +7,7 @@ A feature-rich QR code generator library for Go with extensive customization opt
 - Multiple module shapes (square, circle, rounded, diamond, dot, star, heart)
 - Solid colors and gradients (linear & radial)
 - Custom images for finder patterns, alignment patterns, and modules
-- Logo support with automatic sizing and aspect ratio preservation
+- Logo support with automatic sizing and aspect ratio preservation (from file or in-memory image)
 - SVG output with clean, optimized markup
 - Configurable error correction levels
 
@@ -69,12 +69,13 @@ package main
 
 import (
     "os"
-    "github.com/ahmedtahas/qr-gode/pkg/qrcode"
+
+    qrgode "github.com/ahmedtahas/qr-gode"
 )
 
 func main() {
     // Simple QR code
-    svg, err := qrcode.New("https://example.com").SVG()
+    svg, err := qrgode.New("https://example.com").SVG()
     if err != nil {
         panic(err)
     }
@@ -86,22 +87,22 @@ func main() {
 
 ```go
 // Custom colors and shape
-svg, _ := qrcode.New("Hello World").
+svg, _ := qrgode.New("Hello World").
     Size(512).
-    Shape("circle").
+    Shape(qrgode.ShapeCircle).
     Foreground("#3498db").
     Background("#ffffff").
     SVG()
 
 // Linear gradient
-svg, _ := qrcode.New("Gradient QR").
-    Shape("rounded").
+svg, _ := qrgode.New("Gradient QR").
+    Shape(qrgode.ShapeRounded).
     LinearGradient(45, "#ff6b6b", "#4ecdc4").
     SVG()
 
 // Radial gradient
-svg, _ := qrcode.New("Radial QR").
-    Shape("dot").
+svg, _ := qrgode.New("Radial QR").
+    Shape(qrgode.ShapeDot).
     RadialGradient(0.5, 0.5, "#ff6b6b", "#4ecdc4", "#45b7d1").
     SVG()
 ```
@@ -109,19 +110,24 @@ svg, _ := qrcode.New("Radial QR").
 #### Adding a Logo
 
 ```go
-// Auto-sized logo (15-30% of QR size, preserves aspect ratio)
-svg, _ := qrcode.New("https://example.com").
+// Auto-sized logo from file (15-30% of QR size, preserves aspect ratio)
+svg, _ := qrgode.New("https://example.com").
     Logo("logo.png").
     SVG()
 
+// Logo from in-memory image
+svg, _ := qrgode.New("https://example.com").
+    LogoImage(myImage). // image.Image
+    SVG()
+
 // Custom logo dimensions
-svg, _ := qrcode.New("https://example.com").
+svg, _ := qrgode.New("https://example.com").
     Logo("logo.png").
     LogoWidth(100).
     SVG()
 
 // Transparent logo background
-svg, _ := qrcode.New("https://example.com").
+svg, _ := qrgode.New("https://example.com").
     Logo("logo.png").
     LogoBackground("transparent").
     SVG()
@@ -131,7 +137,7 @@ svg, _ := qrcode.New("https://example.com").
 
 ```go
 // Use custom images for QR elements
-svg, _ := qrcode.New("Custom QR").
+svg, _ := qrgode.New("Custom QR").
     FinderImage("finder.png").
     AlignmentImage("alignment.png").
     ModuleImage("module.png").
@@ -142,8 +148,8 @@ svg, _ := qrcode.New("Custom QR").
 
 ```go
 // Higher error correction for logos or damaged codes
-svg, _ := qrcode.New("https://example.com").
-    ErrorCorrection(qrcode.LevelH). // 30% recovery
+svg, _ := qrgode.New("https://example.com").
+    ErrorCorrection(qrgode.LevelH). // 30% recovery
     Logo("logo.png").
     SVG()
 ```
@@ -153,10 +159,10 @@ svg, _ := qrcode.New("https://example.com").
 Alternative API using functional options:
 
 ```go
-svg, err := qrcode.GenerateWithOptions("https://example.com",
-    qrcode.WithSize(512),
-    qrcode.WithShape("circle"),
-    qrcode.WithLogo("logo.png"),
+svg, err := qrgode.GenerateWithOptions("https://example.com",
+    qrgode.WithSize(512),
+    qrgode.WithModuleShape("circle"),
+    qrgode.WithLogo("logo.png"),
 )
 ```
 
@@ -165,37 +171,51 @@ svg, err := qrcode.GenerateWithOptions("https://example.com",
 For full control, use the Config struct directly:
 
 ```go
-cfg := qrcode.DefaultConfig()
+cfg := qrgode.DefaultConfig()
 cfg.Size = 512
 cfg.Modules.Shape = "circle"
-cfg.Modules.Color = qrcode.NewLinearGradientColor(45, []string{"#ff6b6b", "#4ecdc4"})
-cfg.Logo = &qrcode.LogoConfig{
+cfg.Modules.Color = qrgode.NewLinearGradientColor(45, []string{"#ff6b6b", "#4ecdc4"})
+cfg.Logo = &qrgode.LogoConfig{
     Path: "logo.png",
 }
 
-svg, err := qrcode.Generate("https://example.com", cfg)
+svg, err := qrgode.Generate("https://example.com", cfg)
+```
+
+### Simple Generate Functions
+
+For quick generation without configuration:
+
+```go
+// Generate to bytes
+svg, err := qrgode.Generate("https://example.com", nil)
+
+// Generate directly to file
+err := qrgode.GenerateToFile("https://example.com", nil, "qr.svg")
 ```
 
 ## Available Shapes
 
-| Shape | Description |
-|-------|-------------|
-| `square` | Standard square modules (default) |
-| `circle` | Circular modules |
-| `rounded` | Rounded square modules |
-| `diamond` | Diamond/rotated square modules |
-| `dot` | Small centered dots |
-| `star` | Star-shaped modules |
-| `heart` | Heart-shaped modules |
+Use the typed `Shape` constants for type safety:
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `ShapeSquare` | `"square"` | Standard square modules (default) |
+| `ShapeCircle` | `"circle"` | Circular modules |
+| `ShapeRounded` | `"rounded"` | Rounded square modules |
+| `ShapeDiamond` | `"diamond"` | Diamond/rotated square modules |
+| `ShapeDot` | `"dot"` | Small centered dots |
+| `ShapeStar` | `"star"` | Star-shaped modules |
+| `ShapeHeart` | `"heart"` | Heart-shaped modules |
 
 ## Error Correction Levels
 
-| Level | Recovery Capacity | Use Case |
-|-------|-------------------|----------|
-| `L` | ~7% | Maximum data density |
-| `M` | ~15% | Default, balanced |
-| `Q` | ~25% | Better recovery |
-| `H` | ~30% | Best recovery, use with logos |
+| Constant | Recovery Capacity | Use Case |
+|----------|-------------------|----------|
+| `LevelL` | ~7% | Maximum data density |
+| `LevelM` | ~15% | Default, balanced |
+| `LevelQ` | ~25% | Better recovery |
+| `LevelH` | ~30% | Best recovery, use with logos |
 
 When adding a logo, consider using `LevelQ` or `LevelH` to ensure the QR code remains scannable.
 
@@ -223,6 +243,7 @@ Any square image that represents a single dark module.
 
 - **Auto-sizing**: By default, logos are scaled to fit within 15-30% of the QR code size
 - **Aspect ratio**: Always preserved - logos are never stretched
+- **In-memory support**: Use `LogoImage()` to pass an `image.Image` directly
 - **SVG logos**: Treated as 1:1 aspect ratio, scale perfectly at any size
 - **Background**: White rounded rectangle by default, can be set to transparent
 - **Exclusion zone**: Modules under the logo area are not rendered (cleaner than overlay)
@@ -232,17 +253,17 @@ Any square image that represents a single dark module.
 ### Generate to File
 
 ```go
-err := qrcode.New("https://example.com").
-    Shape("circle").
+err := qrgode.New("https://example.com").
+    Shape(qrgode.ShapeCircle).
     LinearGradient(45, "#667eea", "#764ba2").
     Logo("logo.png").
-    SaveSVG("output.svg")
+    SaveAs("output.svg")
 ```
 
 ### Generate to Bytes
 
 ```go
-svg, err := qrcode.New("https://example.com").SVG()
+svg, err := qrgode.New("https://example.com").SVG()
 // Use svg bytes directly (e.g., HTTP response)
 ```
 
@@ -250,11 +271,11 @@ svg, err := qrcode.New("https://example.com").SVG()
 
 ```go
 // Validate before using
-if err := qrcode.ValidateFinderImage("finder.png"); err != nil {
+if err := qrgode.ValidateFinderImage("finder.png"); err != nil {
     log.Fatal(err)
 }
 
-if err := qrcode.ValidateLogoImage("logo.png"); err != nil {
+if err := qrgode.ValidateLogoImage("logo.png"); err != nil {
     log.Fatal(err)
 }
 ```
