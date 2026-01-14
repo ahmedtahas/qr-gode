@@ -264,7 +264,7 @@ err := qrgode.New("https://example.com").
     Shape(qrgode.ShapeCircle).
     LinearGradient(45, "#667eea", "#764ba2").
     Logo("logo.png").
-    SaveAs("output.svg")
+    SaveAs("output.svg") // Currently only supports .svg
 ```
 
 ### Generate to Bytes
