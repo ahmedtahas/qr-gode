@@ -1,5 +1,10 @@
 # qr-gode
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/ahmedtahas/qr-gode.svg)](https://pkg.go.dev/github.com/ahmedtahas/qr-gode)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ahmedtahas/qr-gode)](https://goreportcard.com/report/github.com/ahmedtahas/qr-gode)
+[![Go](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml/badge.svg)](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A feature-rich QR code generator library for Go with extensive customization options.
 
 ## Features

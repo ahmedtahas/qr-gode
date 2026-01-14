@@ -1,6 +1,7 @@
 # Generated files
 *.svg
 *.png
+!assets/*.png
 *.jpg
 *.jpeg
 
