@@ -36,8 +36,8 @@ func Generate(data string, cfg *Config) ([]byte, error) {
 	}
 
 	// Render to SVG
-	renderer := NewRenderer(matrix, cfg)
-	return renderer.RenderSVG()
+	renderer := newRenderer(matrix, cfg)
+	return renderer.renderSVG()
 }
 
 // GenerateToFile creates a QR code and writes it to the specified path.
@@ -51,7 +51,7 @@ func GenerateToFile(data string, cfg *Config, path string) error {
 	ext := strings.ToLower(filepath.Ext(path))
 	if ext == ".png" {
 		// PNG not yet implemented
-		renderer := NewRenderer(nil, cfg)
+		renderer := newRenderer(nil, cfg)
 		_, err := renderer.RenderPNG()
 		return err
 	}

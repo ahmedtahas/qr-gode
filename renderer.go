@@ -23,13 +23,13 @@ const (
 )
 
 // hasLogo returns true if a logo is configured (either as image or path)
-func (r *Renderer) hasLogo() bool {
+func (r *renderer) hasLogo() bool {
 	logo := r.config.Logo
 	return logo != nil && (logo.Image != nil || logo.Path != "")
 }
 
 // getLogoSourceDimensions returns the original dimensions of the logo source
-func (r *Renderer) getLogoSourceDimensions() (int, int, error) {
+func (r *renderer) getLogoSourceDimensions() (int, int, error) {
 	logo := r.config.Logo
 	if logo.Image != nil {
 		bounds := logo.Image.Bounds()
@@ -39,7 +39,7 @@ func (r *Renderer) getLogoSourceDimensions() (int, int, error) {
 }
 
 // calculateLogoDimensions returns logo width, height, and padding in pixels
-func (r *Renderer) calculateLogoDimensions() (float64, float64, float64, error) {
+func (r *renderer) calculateLogoDimensions() (float64, float64, float64, error) {
 	if !r.hasLogo() {
 		return 0, 0, 0, nil
 	}
@@ -93,22 +93,22 @@ func (r *Renderer) calculateLogoDimensions() (float64, float64, float64, error) 
 	return logoWidth, logoHeight, padding, nil
 }
 
-// Renderer converts a QR matrix to SVG output.
-type Renderer struct {
+// renderer converts a QR matrix to SVG output.
+type renderer struct {
 	config *Config
 	matrix *encoder.Matrix
 }
 
-// NewRenderer creates a renderer for the given matrix and config.
-func NewRenderer(matrix *encoder.Matrix, config *Config) *Renderer {
-	return &Renderer{
+// newRenderer creates a renderer for the given matrix and config.
+func newRenderer(matrix *encoder.Matrix, config *Config) *renderer {
+	return &renderer{
 		config: config,
 		matrix: matrix,
 	}
 }
 
-// RenderSVG generates the SVG representation of the QR code.
-func (r *Renderer) RenderSVG() ([]byte, error) {
+// renderSVG generates the SVG representation of the QR code.
+func (r *renderer) renderSVG() ([]byte, error) {
 	// Check if using custom images
 	if r.config.Images != nil && (r.config.Images.Module != "" || r.config.Images.Finder != "" || r.config.Images.Alignment != "") {
 		return r.renderWithImages()
@@ -117,7 +117,7 @@ func (r *Renderer) RenderSVG() ([]byte, error) {
 }
 
 // renderWithShapes renders QR code using vector shapes
-func (r *Renderer) renderWithShapes() ([]byte, error) {
+func (r *renderer) renderWithShapes() ([]byte, error) {
 	matrixSize := r.matrix.Size()
 	quietZone := r.config.QuietZone
 	totalModules := matrixSize + 2*quietZone
@@ -236,7 +236,7 @@ func (r *Renderer) renderWithShapes() ([]byte, error) {
 }
 
 // renderWithImages renders QR code using custom PNG images
-func (r *Renderer) renderWithImages() ([]byte, error) {
+func (r *renderer) renderWithImages() ([]byte, error) {
 	matrixSize := r.matrix.Size()
 	quietZone := r.config.QuietZone
 	totalModules := matrixSize + 2*quietZone
@@ -478,7 +478,7 @@ func getLogoDimensions(path string) (int, int, error) {
 }
 
 // renderLogo renders the logo in the center of the QR code
-func (r *Renderer) renderLogo() (string, error) {
+func (r *renderer) renderLogo() (string, error) {
 	if !r.hasLogo() {
 		return "", nil
 	}
@@ -530,7 +530,7 @@ func (r *Renderer) renderLogo() (string, error) {
 }
 
 // getLogoDataURI returns the logo as a data URI, from either image.Image or file path
-func (r *Renderer) getLogoDataURI() (string, error) {
+func (r *renderer) getLogoDataURI() (string, error) {
 	logo := r.config.Logo
 
 	// If we have an in-memory image, encode it to PNG
@@ -709,6 +709,6 @@ func splitNumbers(s string) []float64 {
 }
 
 // RenderPNG generates a PNG by rasterizing the SVG.
-func (r *Renderer) RenderPNG() ([]byte, error) {
+func (r *renderer) RenderPNG() ([]byte, error) {
 	return nil, fmt.Errorf("PNG rendering not supported - use SVG output")
 }

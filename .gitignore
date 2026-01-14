@@ -6,7 +6,7 @@
 *.jpeg
 
 # Binary
-qr-gode
+qr-gode*
 
 # IDE
 .idea/

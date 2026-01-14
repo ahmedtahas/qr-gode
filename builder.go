@@ -246,8 +246,8 @@ func (q *QRCode) SVG() ([]byte, error) {
 		return nil, err
 	}
 
-	renderer := NewRenderer(matrix, q.config)
-	return renderer.RenderSVG()
+	renderer := newRenderer(matrix, q.config)
+	return renderer.renderSVG()
 }
 
 // SVGString generates and returns the QR code as an SVG string.
