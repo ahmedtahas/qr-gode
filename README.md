@@ -49,7 +49,7 @@ qr-gode -finder-img finder.png -module-img dot.png "Custom QR"
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-o` | Output file path | `qrcode.svg` |
+| `-o` | Output file path (must end in .svg) | `qrcode.svg` |
 | `-size` | Output size in pixels | `512` |
 | `-shape` | Module shape | `square` |
 | `-fg` | Foreground color (hex) | `#000000` |
