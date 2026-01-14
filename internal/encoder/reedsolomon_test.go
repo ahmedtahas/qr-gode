@@ -46,9 +46,9 @@ func TestGFMul(t *testing.T) {
 	tests := []struct {
 		a, b, want byte
 	}{
-		{0, 5, 0},    // Anything times 0 is 0
+		{0, 5, 0}, // Anything times 0 is 0
 		{5, 0, 0},
-		{1, 7, 7},    // 1 is multiplicative identity
+		{1, 7, 7}, // 1 is multiplicative identity
 		{7, 1, 7},
 		{2, 4, 8},    // Simple cases
 		{2, 128, 29}, // 2 * 128 = 256 -> reduced by primitive poly

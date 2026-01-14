@@ -2,17 +2,17 @@ package encoder
 
 // BlockInfo describes how data is split into blocks for error correction.
 type BlockInfo struct {
-	Count         int // Number of blocks with this configuration
+	Count          int // Number of blocks with this configuration
 	TotalCodewords int // Total codewords in each block
 	DataCodewords  int // Data codewords per block (rest are ECC)
 }
 
 // ECCInfo holds error correction configuration for a version/level combo.
 type ECCInfo struct {
-	TotalCodewords  int         // Total codewords for this version
-	ECCPerBlock     int         // Error correction codewords per block
-	Group1          BlockInfo   // First group of blocks
-	Group2          BlockInfo   // Second group (Count=0 if not used)
+	TotalCodewords int       // Total codewords for this version
+	ECCPerBlock    int       // Error correction codewords per block
+	Group1         BlockInfo // First group of blocks
+	Group2         BlockInfo // Second group (Count=0 if not used)
 }
 
 // DataCapacity returns the total data codewords (excluding ECC).
@@ -39,10 +39,10 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 3
 	{
-		{70, 15, BlockInfo{1, 70, 55}, BlockInfo{}},  // L
-		{70, 26, BlockInfo{1, 70, 44}, BlockInfo{}},  // M
-		{70, 18, BlockInfo{2, 35, 17}, BlockInfo{}},  // Q
-		{70, 22, BlockInfo{2, 35, 13}, BlockInfo{}},  // H
+		{70, 15, BlockInfo{1, 70, 55}, BlockInfo{}}, // L
+		{70, 26, BlockInfo{1, 70, 44}, BlockInfo{}}, // M
+		{70, 18, BlockInfo{2, 35, 17}, BlockInfo{}}, // Q
+		{70, 22, BlockInfo{2, 35, 13}, BlockInfo{}}, // H
 	},
 	// Version 4
 	{
@@ -60,10 +60,10 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 6
 	{
-		{172, 18, BlockInfo{2, 86, 68}, BlockInfo{}},          // L
-		{172, 16, BlockInfo{4, 43, 27}, BlockInfo{}},          // M
-		{172, 24, BlockInfo{4, 43, 19}, BlockInfo{}},          // Q
-		{172, 28, BlockInfo{4, 43, 15}, BlockInfo{}},          // H
+		{172, 18, BlockInfo{2, 86, 68}, BlockInfo{}}, // L
+		{172, 16, BlockInfo{4, 43, 27}, BlockInfo{}}, // M
+		{172, 24, BlockInfo{4, 43, 19}, BlockInfo{}}, // Q
+		{172, 28, BlockInfo{4, 43, 15}, BlockInfo{}}, // H
 	},
 	// Version 7
 	{
@@ -74,31 +74,31 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 8
 	{
-		{242, 24, BlockInfo{2, 121, 97}, BlockInfo{}},          // L
-		{242, 22, BlockInfo{2, 60, 38}, BlockInfo{2, 61, 39}},  // M
-		{242, 22, BlockInfo{4, 40, 18}, BlockInfo{2, 41, 19}},  // Q
-		{242, 26, BlockInfo{4, 40, 14}, BlockInfo{2, 41, 15}},  // H
+		{242, 24, BlockInfo{2, 121, 97}, BlockInfo{}},         // L
+		{242, 22, BlockInfo{2, 60, 38}, BlockInfo{2, 61, 39}}, // M
+		{242, 22, BlockInfo{4, 40, 18}, BlockInfo{2, 41, 19}}, // Q
+		{242, 26, BlockInfo{4, 40, 14}, BlockInfo{2, 41, 15}}, // H
 	},
 	// Version 9
 	{
-		{292, 30, BlockInfo{2, 146, 116}, BlockInfo{}},         // L
-		{292, 22, BlockInfo{3, 58, 36}, BlockInfo{2, 59, 37}},  // M
-		{292, 20, BlockInfo{4, 36, 16}, BlockInfo{4, 37, 17}},  // Q
-		{292, 24, BlockInfo{4, 36, 12}, BlockInfo{4, 37, 13}},  // H
+		{292, 30, BlockInfo{2, 146, 116}, BlockInfo{}},        // L
+		{292, 22, BlockInfo{3, 58, 36}, BlockInfo{2, 59, 37}}, // M
+		{292, 20, BlockInfo{4, 36, 16}, BlockInfo{4, 37, 17}}, // Q
+		{292, 24, BlockInfo{4, 36, 12}, BlockInfo{4, 37, 13}}, // H
 	},
 	// Version 10
 	{
-		{346, 18, BlockInfo{2, 86, 68}, BlockInfo{2, 87, 69}},  // L
-		{346, 26, BlockInfo{4, 69, 43}, BlockInfo{1, 70, 44}},  // M
-		{346, 24, BlockInfo{6, 43, 19}, BlockInfo{2, 44, 20}},  // Q
-		{346, 28, BlockInfo{6, 43, 15}, BlockInfo{2, 44, 16}},  // H
+		{346, 18, BlockInfo{2, 86, 68}, BlockInfo{2, 87, 69}}, // L
+		{346, 26, BlockInfo{4, 69, 43}, BlockInfo{1, 70, 44}}, // M
+		{346, 24, BlockInfo{6, 43, 19}, BlockInfo{2, 44, 20}}, // Q
+		{346, 28, BlockInfo{6, 43, 15}, BlockInfo{2, 44, 16}}, // H
 	},
 	// Version 11
 	{
-		{404, 20, BlockInfo{4, 101, 81}, BlockInfo{}},          // L
-		{404, 30, BlockInfo{1, 80, 50}, BlockInfo{4, 81, 51}},  // M
-		{404, 28, BlockInfo{4, 50, 22}, BlockInfo{4, 51, 23}},  // Q
-		{404, 24, BlockInfo{3, 36, 12}, BlockInfo{8, 37, 13}},  // H
+		{404, 20, BlockInfo{4, 101, 81}, BlockInfo{}},         // L
+		{404, 30, BlockInfo{1, 80, 50}, BlockInfo{4, 81, 51}}, // M
+		{404, 28, BlockInfo{4, 50, 22}, BlockInfo{4, 51, 23}}, // Q
+		{404, 24, BlockInfo{3, 36, 12}, BlockInfo{8, 37, 13}}, // H
 	},
 	// Version 12
 	{
@@ -109,10 +109,10 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 13
 	{
-		{532, 26, BlockInfo{4, 133, 107}, BlockInfo{}},          // L
-		{532, 22, BlockInfo{8, 59, 37}, BlockInfo{1, 60, 38}},   // M
-		{532, 24, BlockInfo{8, 44, 20}, BlockInfo{4, 45, 21}},   // Q
-		{532, 22, BlockInfo{12, 33, 11}, BlockInfo{4, 34, 12}},  // H
+		{532, 26, BlockInfo{4, 133, 107}, BlockInfo{}},         // L
+		{532, 22, BlockInfo{8, 59, 37}, BlockInfo{1, 60, 38}},  // M
+		{532, 24, BlockInfo{8, 44, 20}, BlockInfo{4, 45, 21}},  // Q
+		{532, 22, BlockInfo{12, 33, 11}, BlockInfo{4, 34, 12}}, // H
 	},
 	// Version 14
 	{
@@ -123,17 +123,17 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 15
 	{
-		{655, 22, BlockInfo{5, 109, 87}, BlockInfo{1, 110, 88}},  // L
-		{655, 24, BlockInfo{5, 65, 41}, BlockInfo{5, 66, 42}},    // M
-		{655, 30, BlockInfo{5, 54, 24}, BlockInfo{7, 55, 25}},    // Q
-		{655, 24, BlockInfo{11, 36, 12}, BlockInfo{7, 37, 13}},   // H
+		{655, 22, BlockInfo{5, 109, 87}, BlockInfo{1, 110, 88}}, // L
+		{655, 24, BlockInfo{5, 65, 41}, BlockInfo{5, 66, 42}},   // M
+		{655, 30, BlockInfo{5, 54, 24}, BlockInfo{7, 55, 25}},   // Q
+		{655, 24, BlockInfo{11, 36, 12}, BlockInfo{7, 37, 13}},  // H
 	},
 	// Version 16
 	{
-		{733, 24, BlockInfo{5, 122, 98}, BlockInfo{1, 123, 99}},  // L
-		{733, 28, BlockInfo{7, 73, 45}, BlockInfo{3, 74, 46}},    // M
-		{733, 24, BlockInfo{15, 43, 19}, BlockInfo{2, 44, 20}},   // Q
-		{733, 30, BlockInfo{3, 45, 15}, BlockInfo{13, 46, 16}},   // H
+		{733, 24, BlockInfo{5, 122, 98}, BlockInfo{1, 123, 99}}, // L
+		{733, 28, BlockInfo{7, 73, 45}, BlockInfo{3, 74, 46}},   // M
+		{733, 24, BlockInfo{15, 43, 19}, BlockInfo{2, 44, 20}},  // Q
+		{733, 30, BlockInfo{3, 45, 15}, BlockInfo{13, 46, 16}},  // H
 	},
 	// Version 17
 	{
@@ -242,10 +242,10 @@ var eccTable = [40][4]ECCInfo{
 	},
 	// Version 32
 	{
-		{2465, 30, BlockInfo{17, 145, 115}, BlockInfo{}},            // L
-		{2465, 28, BlockInfo{10, 74, 46}, BlockInfo{23, 75, 47}},    // M
-		{2465, 30, BlockInfo{10, 54, 24}, BlockInfo{35, 55, 25}},    // Q
-		{2465, 30, BlockInfo{19, 45, 15}, BlockInfo{35, 46, 16}},    // H
+		{2465, 30, BlockInfo{17, 145, 115}, BlockInfo{}},         // L
+		{2465, 28, BlockInfo{10, 74, 46}, BlockInfo{23, 75, 47}}, // M
+		{2465, 30, BlockInfo{10, 54, 24}, BlockInfo{35, 55, 25}}, // Q
+		{2465, 30, BlockInfo{19, 45, 15}, BlockInfo{35, 46, 16}}, // H
 	},
 	// Version 33
 	{

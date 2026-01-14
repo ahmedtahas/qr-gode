@@ -2,10 +2,10 @@ package encoder
 
 // Encoder orchestrates the QR code encoding process.
 type Encoder struct {
-	data             string
-	errorCorrection  ErrorCorrectionLevel
-	version          int
-	mode             Mode
+	data            string
+	errorCorrection ErrorCorrectionLevel
+	version         int
+	mode            Mode
 }
 
 // ErrorCorrectionLevel defines redundancy level.

@@ -4,11 +4,11 @@ import "testing"
 
 func TestGetECCInfo(t *testing.T) {
 	tests := []struct {
-		version      Version
-		ecl          ErrorCorrectionLevel
-		wantTotal    int
-		wantECCPer   int
-		wantDataCap  int
+		version     Version
+		ecl         ErrorCorrectionLevel
+		wantTotal   int
+		wantECCPer  int
+		wantDataCap int
 	}{
 		// Version 1
 		{1, LevelL, 26, 7, 19},

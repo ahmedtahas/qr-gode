@@ -58,9 +58,9 @@ func (m *Matrix) Set(x, y int, mod Module) {
 // PlaceFunctionPatterns places all non-data patterns on the matrix.
 func (m *Matrix) PlaceFunctionPatterns(version Version) {
 	// 1. Place finder patterns (3 corners)
-	m.placeFinder(0, 0)                // top-left
-	m.placeFinder(m.size-7, 0)         // top-right
-	m.placeFinder(0, m.size-7)         // bottom-left
+	m.placeFinder(0, 0)        // top-left
+	m.placeFinder(m.size-7, 0) // top-right
+	m.placeFinder(0, m.size-7) // bottom-left
 
 	// 2. Place finder separators
 	m.placeSeparators()
@@ -103,7 +103,7 @@ func (m *Matrix) PlaceData(data []byte) {
 
 		// Zigzag: go up on even strips, down on odd
 		// We determine direction based on which strip we're on
-		upward := ((m.size - 1 - col) / 2) % 2 == 0
+		upward := ((m.size-1-col)/2)%2 == 0
 
 		for row := 0; row < m.size; row++ {
 			actualRow := row
@@ -275,13 +275,13 @@ func alignmentPatternPositions(version Version) []int {
 func (m *Matrix) placeSeparators() {
 	// Top-left: right edge (col 7) and bottom edge (row 7)
 	for i := 0; i < 8; i++ {
-		m.Set(7, i, Module{Type: ModuleFinderSeparator, Reserved: true})   // right edge
-		m.Set(i, 7, Module{Type: ModuleFinderSeparator, Reserved: true})   // bottom edge
+		m.Set(7, i, Module{Type: ModuleFinderSeparator, Reserved: true}) // right edge
+		m.Set(i, 7, Module{Type: ModuleFinderSeparator, Reserved: true}) // bottom edge
 	}
 
 	// Top-right: left edge (col size-8) and bottom edge (row 7)
 	for i := 0; i < 8; i++ {
-		m.Set(m.size-8, i, Module{Type: ModuleFinderSeparator, Reserved: true}) // left edge
+		m.Set(m.size-8, i, Module{Type: ModuleFinderSeparator, Reserved: true})   // left edge
 		m.Set(m.size-8+i, 7, Module{Type: ModuleFinderSeparator, Reserved: true}) // bottom edge
 	}
 

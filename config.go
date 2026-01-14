@@ -58,8 +58,8 @@ type Config struct {
 	ErrorCorrection ErrorCorrectionLevel
 
 	// Overall dimensions
-	Size      int  // Output size in pixels
-	QuietZone int  // Margin around QR (in modules)
+	Size      int // Output size in pixels
+	QuietZone int // Margin around QR (in modules)
 
 	// Styling
 	Background colors.Color
