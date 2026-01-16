@@ -92,10 +92,11 @@ func ValidateFinderImage(path string) error {
 	}
 
 	// Warn if not square (but don't fail)
-	if w != h {
-		// We could log a warning here, but for now just accept it
-		// The image will be stretched to fit
-	}
+	// Warn if not square (but don't fail)
+	// if w != h {
+	// 	// We could log a warning here, but for now just accept it
+	// 	// The image will be stretched to fit
+	// }
 
 	return nil
 }
@@ -117,9 +118,10 @@ func ValidateAlignmentImage(path string) error {
 	}
 
 	// Warn if not square (but don't fail)
-	if w != h {
-		// We could log a warning here, but for now just accept it
-	}
+	// Warn if not square (but don't fail)
+	// if w != h {
+	// 	// We could log a warning here, but for now just accept it
+	// }
 
 	return nil
 }

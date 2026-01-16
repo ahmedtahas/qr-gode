@@ -39,9 +39,14 @@ func createCircle(path string, c color.RGBA, size int) {
 		}
 	}
 
-	f, _ := os.Create(path)
+	f, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
 	defer f.Close()
-	png.Encode(f, img)
+	if err := png.Encode(f, img); err != nil {
+		panic(err)
+	}
 }
 
 type darkFunc func(mx, my int) bool
@@ -79,9 +84,14 @@ func drawPattern(path string, c color.RGBA, size int, modules int, isDark darkFu
 		}
 	}
 
-	f, _ := os.Create(path)
+	f, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
 	defer f.Close()
-	png.Encode(f, img)
+	if err := png.Encode(f, img); err != nil {
+		panic(err)
+	}
 }
 
 // createFinderPattern creates a proper QR finder pattern (7x7 modules)

@@ -11,23 +11,33 @@ func TestCorruptedInputs(t *testing.T) {
 
 	// Fake PNG (text file with .png extension)
 	fakePNG := tmpDir + "/fake.png"
-	os.WriteFile(fakePNG, []byte("not a real png file"), 0644)
+	if err := os.WriteFile(fakePNG, []byte("not a real png file"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Empty file
 	emptyFile := tmpDir + "/empty.png"
-	os.WriteFile(emptyFile, []byte{}, 0644)
+	if err := os.WriteFile(emptyFile, []byte{}, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Random bytes
 	randomFile := tmpDir + "/random.png"
-	os.WriteFile(randomFile, []byte{0x00, 0x01, 0x02, 0xFF, 0xFE, 0x89, 0x50, 0x4E}, 0644)
+	if err := os.WriteFile(randomFile, []byte{0x00, 0x01, 0x02, 0xFF, 0xFE, 0x89, 0x50, 0x4E}, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Truncated PNG header
 	truncatedPNG := tmpDir + "/truncated.png"
-	os.WriteFile(truncatedPNG, []byte{0x89, 0x50, 0x4E, 0x47}, 0644) // PNG magic but incomplete
+	if err := os.WriteFile(truncatedPNG, []byte{0x89, 0x50, 0x4E, 0x47}, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Valid PNG header but corrupted body
 	corruptPNG := tmpDir + "/corrupt.png"
-	os.WriteFile(corruptPNG, []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0xFF, 0xFF}, 0644)
+	if err := os.WriteFile(corruptPNG, []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0xFF, 0xFF}, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name        string
@@ -184,8 +194,8 @@ func TestSymlinkLoop(t *testing.T) {
 	// Create symlink loop (if possible)
 	link1 := tmpDir + "/link1.png"
 	link2 := tmpDir + "/link2.png"
-	os.Symlink(link2, link1)
-	os.Symlink(link1, link2)
+	_ = os.Symlink(link2, link1)
+	_ = os.Symlink(link1, link2)
 
 	_, err := New("test").Logo(link1).SVG()
 	t.Logf("symlink loop: %v", err)

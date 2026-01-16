@@ -37,7 +37,9 @@ func TestValidateImage_Directory(t *testing.T) {
 func TestValidateImage_UnsupportedFormat(t *testing.T) {
 	// Create a temp file with wrong extension
 	tmpFile := filepath.Join(os.TempDir(), "test.txt")
-	os.WriteFile(tmpFile, []byte("test"), 0644)
+	if err := os.WriteFile(tmpFile, []byte("test"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	defer os.Remove(tmpFile)
 
 	_, _, err := ValidateImage(tmpFile)
@@ -52,7 +54,9 @@ func TestValidateImage_UnsupportedFormat(t *testing.T) {
 func TestValidateImage_InvalidPNG(t *testing.T) {
 	// Create a temp file with PNG extension but invalid content
 	tmpFile := filepath.Join(os.TempDir(), "invalid.png")
-	os.WriteFile(tmpFile, []byte("not a png"), 0644)
+	if err := os.WriteFile(tmpFile, []byte("not a png"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	defer os.Remove(tmpFile)
 
 	_, _, err := ValidateImage(tmpFile)
