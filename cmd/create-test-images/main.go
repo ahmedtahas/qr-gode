@@ -44,20 +44,13 @@ func createCircle(path string, c color.RGBA, size int) {
 	png.Encode(f, img)
 }
 
-// createFinderPattern creates a proper QR finder pattern (7x7 modules)
-// Structure:
-// ███████
-// █     █
-// █ ███ █
-// █ ███ █
-// █ ███ █
-// █     █
-// ███████
-func createFinderPattern(path string, c color.RGBA, size int) {
-	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	moduleSize := size / 7
+type darkFunc func(mx, my int) bool
 
-	// Fill background with white first
+func drawPattern(path string, c color.RGBA, size int, modules int, isDark darkFunc) {
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+	moduleSize := size / modules
+
+	// Fill background with white
 	white := color.RGBA{255, 255, 255, 255}
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
@@ -65,25 +58,18 @@ func createFinderPattern(path string, c color.RGBA, size int) {
 		}
 	}
 
-	// Draw the finder pattern
-	for my := 0; my < 7; my++ {
-		for mx := 0; mx < 7; mx++ {
-			// Determine if this module should be dark
-			isDark := false
-
-			// Outer ring (row 0, row 6, col 0, col 6)
-			if my == 0 || my == 6 || mx == 0 || mx == 6 {
-				isDark = true
-			}
-			// Inner 3x3 square (rows 2-4, cols 2-4)
-			if mx >= 2 && mx <= 4 && my >= 2 && my <= 4 {
-				isDark = true
-			}
-
-			if isDark {
+	// Draw the pattern
+	for my := 0; my < modules; my++ {
+		for mx := 0; mx < modules; mx++ {
+			if isDark(mx, my) {
 				// Fill this module
-				for py := my * moduleSize; py < (my+1)*moduleSize; py++ {
-					for px := mx * moduleSize; px < (mx+1)*moduleSize; px++ {
+				startX := mx * moduleSize
+				startY := my * moduleSize
+				endX := (mx + 1) * moduleSize
+				endY := (my + 1) * moduleSize
+
+				for py := startY; py < endY; py++ {
+					for px := startX; px < endX; px++ {
 						if px < size && py < size {
 							img.Set(px, py, c)
 						}
@@ -98,6 +84,30 @@ func createFinderPattern(path string, c color.RGBA, size int) {
 	png.Encode(f, img)
 }
 
+// createFinderPattern creates a proper QR finder pattern (7x7 modules)
+// Structure:
+// ███████
+// █     █
+// █ ███ █
+// █ ███ █
+// █ ███ █
+// █     █
+// ███████
+func createFinderPattern(path string, c color.RGBA, size int) {
+	isDark := func(mx, my int) bool {
+		// Outer ring
+		if my == 0 || my == 6 || mx == 0 || mx == 6 {
+			return true
+		}
+		// Inner 3x3 square
+		if mx >= 2 && mx <= 4 && my >= 2 && my <= 4 {
+			return true
+		}
+		return false
+	}
+	drawPattern(path, c, size, 7, isDark)
+}
+
 // createAlignmentPattern creates a proper QR alignment pattern (5x5 modules)
 // Structure:
 // █████
@@ -106,46 +116,16 @@ func createFinderPattern(path string, c color.RGBA, size int) {
 // █   █
 // █████
 func createAlignmentPattern(path string, c color.RGBA, size int) {
-	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	moduleSize := size / 5
-
-	// Fill background with white first
-	white := color.RGBA{255, 255, 255, 255}
-	for y := 0; y < size; y++ {
-		for x := 0; x < size; x++ {
-			img.Set(x, y, white)
+	isDark := func(mx, my int) bool {
+		// Outer ring
+		if my == 0 || my == 4 || mx == 0 || mx == 4 {
+			return true
 		}
-	}
-
-	// Draw the alignment pattern
-	for my := 0; my < 5; my++ {
-		for mx := 0; mx < 5; mx++ {
-			// Determine if this module should be dark
-			isDark := false
-
-			// Outer ring (row 0, row 4, col 0, col 4)
-			if my == 0 || my == 4 || mx == 0 || mx == 4 {
-				isDark = true
-			}
-			// Center dot
-			if mx == 2 && my == 2 {
-				isDark = true
-			}
-
-			if isDark {
-				// Fill this module
-				for py := my * moduleSize; py < (my+1)*moduleSize; py++ {
-					for px := mx * moduleSize; px < (mx+1)*moduleSize; px++ {
-						if px < size && py < size {
-							img.Set(px, py, c)
-						}
-					}
-				}
-			}
+		// Center dot
+		if mx == 2 && my == 2 {
+			return true
 		}
+		return false
 	}
-
-	f, _ := os.Create(path)
-	defer f.Close()
-	png.Encode(f, img)
+	drawPattern(path, c, size, 5, isDark)
 }

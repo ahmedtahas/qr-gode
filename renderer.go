@@ -118,40 +118,10 @@ func (r *renderer) renderSVG() ([]byte, error) {
 
 // renderWithShapes renders QR code using vector shapes
 func (r *renderer) renderWithShapes() ([]byte, error) {
-	matrixSize := r.matrix.Size()
-	quietZone := r.config.QuietZone
-	totalModules := matrixSize + 2*quietZone
-
-	// Calculate module size based on desired output size
-	moduleSize := float64(r.config.Size) / float64(totalModules)
-
-	// Calculate logo exclusion zone (in module coordinates)
-	var logoMinX, logoMinY, logoMaxX, logoMaxY int
-	hasLogoZone := false
-	if r.hasLogo() {
-		logoWidth, logoHeight, padding, err := r.calculateLogoDimensions()
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate logo dimensions: %w", err)
-		}
-
-		// Total logo area including padding
-		totalWidth := logoWidth + 2*padding
-		totalHeight := logoHeight + 2*padding
-
-		// Convert pixel dimensions to module counts
-		excludeHalfX := int(totalWidth/moduleSize/2) + 1
-		excludeHalfY := int(totalHeight/moduleSize/2) + 1
-
-		// Center of SVG in matrix coordinates
-		svgCenterModule := float64(totalModules) / 2
-		matrixCenterX := int(svgCenterModule) - quietZone
-		matrixCenterY := int(svgCenterModule) - quietZone
-
-		logoMinX = matrixCenterX - excludeHalfX
-		logoMinY = matrixCenterY - excludeHalfY
-		logoMaxX = matrixCenterX + excludeHalfX
-		logoMaxY = matrixCenterY + excludeHalfY
-		hasLogoZone = true
+	// Calculate logo exclusion zone
+	logoMinX, logoMinY, logoMaxX, logoMaxY, hasLogoZone, err := r.calculateExclusionZone()
+	if err != nil {
+		return nil, err
 	}
 
 	var buf bytes.Buffer
@@ -170,12 +140,7 @@ func (r *renderer) renderWithShapes() ([]byte, error) {
 	}
 
 	// Background
-	bgColor := "#FFFFFF"
-	if r.config.Background != nil {
-		bgColor = r.config.Background.SVGFill("")
-	}
-	fmt.Fprintf(&buf, `<rect width="100%%" height="100%%" fill="%s"/>`, bgColor)
-	buf.WriteString("\n")
+	r.writeBackground(&buf)
 
 	// Get module color/fill
 	moduleFill := "#000000"
@@ -183,7 +148,7 @@ func (r *renderer) renderWithShapes() ([]byte, error) {
 		moduleFill = r.config.Modules.Color.SVGFill("module-fill")
 	}
 
-	// Get shape
+	// Get shape - using "square" as safe default if nil or unknown
 	shapeName := r.config.Modules.Shape
 	if shapeName == "" {
 		shapeName = "square"
@@ -193,8 +158,32 @@ func (r *renderer) renderWithShapes() ([]byte, error) {
 		shape = shapes.Get("square")
 	}
 
+	// Draw all valid modules
+	r.drawModulesShapes(&buf, shape, moduleFill, hasLogoZone, logoMinX, logoMinY, logoMaxX, logoMaxY)
+
+	// Render logo if configured
+	if r.hasLogo() {
+		logoSVG, err := r.renderLogo()
+		if err != nil {
+			return nil, err
+		}
+		buf.WriteString(logoSVG)
+	}
+
+	// Close SVG
+	buf.WriteString("</svg>")
+
+	return buf.Bytes(), nil
+}
+
+func (r *renderer) drawModulesShapes(buf *bytes.Buffer, shape shapes.Shape, moduleFill string, hasLogoZone bool, logoMinX, logoMinY, logoMaxX, logoMaxY int) {
+	matrixSize := r.matrix.Size()
+	quietZone := r.config.QuietZone
+	totalModules := matrixSize + 2*quietZone
+	moduleSize := float64(r.config.Size) / float64(totalModules)
+
 	// Render all dark modules as a single path for efficiency
-	fmt.Fprintf(&buf, `<path fill="%s" d="`, moduleFill)
+	fmt.Fprintf(buf, `<path fill="%s" d="`, moduleFill)
 
 	shapePath := shape.SVGPath()
 	for y := 0; y < matrixSize; y++ {
@@ -219,6 +208,43 @@ func (r *renderer) renderWithShapes() ([]byte, error) {
 
 	buf.WriteString(`"/>`)
 	buf.WriteString("\n")
+}
+
+// renderWithImages renders QR code using custom PNG images
+func (r *renderer) renderWithImages() ([]byte, error) {
+	matrixSize := r.matrix.Size()
+
+	// Calculate logo exclusion zone
+	logoMinX, logoMinY, logoMaxX, logoMaxY, hasLogoZone, err := r.calculateExclusionZone()
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	r.writeSVGHeader(&buf)
+
+	// Background
+	r.writeBackground(&buf)
+
+	// Load images
+	moduleImg, finderImg, alignImg, err := r.loadCustomImages()
+	if err != nil {
+		return nil, err
+	}
+
+	// Render finder patterns
+	if finderImg != "" {
+		r.renderFinderImages(&buf, finderImg, matrixSize)
+	}
+
+	// Render alignment patterns
+	if alignImg != "" {
+		r.renderAlignmentImages(&buf, alignImg, finderImg != "", matrixSize)
+	}
+
+	// Render custom image modules
+	// Skip modules in the logo zone or those covered by custom finders/alignments
+	r.renderImageModules(&buf, moduleImg, finderImg, alignImg, matrixSize, hasLogoZone, logoMinX, logoMinY, logoMaxX, logoMaxY)
 
 	// Render logo if configured
 	if r.hasLogo() {
@@ -229,133 +255,143 @@ func (r *renderer) renderWithShapes() ([]byte, error) {
 		buf.WriteString(logoSVG)
 	}
 
-	// Close SVG
 	buf.WriteString("</svg>")
-
 	return buf.Bytes(), nil
 }
 
-// renderWithImages renders QR code using custom PNG images
-func (r *renderer) renderWithImages() ([]byte, error) {
-	matrixSize := r.matrix.Size()
-	quietZone := r.config.QuietZone
-	totalModules := matrixSize + 2*quietZone
-
-	moduleSize := float64(r.config.Size) / float64(totalModules)
-
-	// Calculate logo exclusion zone (in module coordinates)
-	var logoMinX, logoMinY, logoMaxX, logoMaxY int
-	hasLogoZone := false
-	if r.hasLogo() {
-		logoWidth, logoHeight, padding, err := r.calculateLogoDimensions()
-		if err != nil {
-			return nil, fmt.Errorf("failed to calculate logo dimensions: %w", err)
-		}
-
-		// Total logo area including padding
-		totalWidth := logoWidth + 2*padding
-		totalHeight := logoHeight + 2*padding
-
-		// Convert pixel dimensions to module counts
-		excludeHalfX := int(totalWidth/moduleSize/2) + 1
-		excludeHalfY := int(totalHeight/moduleSize/2) + 1
-
-		// Center of SVG in matrix coordinates
-		svgCenterModule := float64(totalModules) / 2
-		matrixCenterX := int(svgCenterModule) - quietZone
-		matrixCenterY := int(svgCenterModule) - quietZone
-
-		logoMinX = matrixCenterX - excludeHalfX
-		logoMinY = matrixCenterY - excludeHalfY
-		logoMaxX = matrixCenterX + excludeHalfX
-		logoMaxY = matrixCenterY + excludeHalfY
-		hasLogoZone = true
-	}
-
-	var buf bytes.Buffer
-
+func (r *renderer) writeSVGHeader(buf *bytes.Buffer) {
 	// SVG header with xlink namespace for images
-	fmt.Fprintf(&buf, `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 %d %d" width="%d" height="%d">`,
+	fmt.Fprintf(buf, `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 %d %d" width="%d" height="%d">`,
 		r.config.Size, r.config.Size, r.config.Size, r.config.Size)
 	buf.WriteString("\n")
+}
 
-	// Background
+func (r *renderer) writeBackground(buf *bytes.Buffer) {
 	bgColor := "#FFFFFF"
 	if r.config.Background != nil {
 		bgColor = r.config.Background.SVGFill("")
 	}
-	fmt.Fprintf(&buf, `<rect width="100%%" height="100%%" fill="%s"/>`, bgColor)
+	fmt.Fprintf(buf, `<rect width="100%%" height="100%%" fill="%s"/>`, bgColor)
 	buf.WriteString("\n")
+}
 
-	// Load and embed images as base64
-	var moduleImg, finderImg, alignImg string
-	var err error
+func (r *renderer) calculateExclusionZone() (minX, minY, maxX, maxY int, active bool, err error) {
+	if !r.hasLogo() {
+		return 0, 0, 0, 0, false, nil
+	}
 
+	logoWidth, logoHeight, padding, err := r.calculateLogoDimensions()
+	if err != nil {
+		return 0, 0, 0, 0, false, fmt.Errorf("failed to calculate logo dimensions: %w", err)
+	}
+
+	matrixSize := r.matrix.Size()
+	quietZone := r.config.QuietZone
+	totalModules := matrixSize + 2*quietZone
+	moduleSize := float64(r.config.Size) / float64(totalModules)
+
+	// Total logo area including padding
+	totalWidth := logoWidth + 2*padding
+	totalHeight := logoHeight + 2*padding
+
+	// Convert pixel dimensions to module counts
+	excludeHalfX := int(totalWidth/moduleSize/2) + 1
+	excludeHalfY := int(totalHeight/moduleSize/2) + 1
+
+	// Center of SVG in matrix coordinates
+	svgCenterModule := float64(totalModules) / 2
+	matrixCenterX := int(svgCenterModule) - quietZone
+	matrixCenterY := int(svgCenterModule) - quietZone
+
+	minX = matrixCenterX - excludeHalfX
+	minY = matrixCenterY - excludeHalfY
+	maxX = matrixCenterX + excludeHalfX
+	maxY = matrixCenterY + excludeHalfY
+
+	return minX, minY, maxX, maxY, true, nil
+}
+
+func (r *renderer) loadCustomImages() (modImg, findImg, alignImg string, err error) {
 	if r.config.Images.Module != "" {
-		moduleImg, err = loadImageAsDataURI(r.config.Images.Module)
+		modImg, err = loadImageAsDataURI(r.config.Images.Module)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load module image: %w", err)
+			return "", "", "", fmt.Errorf("failed to load module image: %w", err)
 		}
 	}
 	if r.config.Images.Finder != "" {
-		finderImg, err = loadImageAsDataURI(r.config.Images.Finder)
+		findImg, err = loadImageAsDataURI(r.config.Images.Finder)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load finder image: %w", err)
+			return "", "", "", fmt.Errorf("failed to load finder image: %w", err)
 		}
 	}
 	if r.config.Images.Alignment != "" {
 		alignImg, err = loadImageAsDataURI(r.config.Images.Alignment)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load alignment image: %w", err)
+			return "", "", "", fmt.Errorf("failed to load alignment image: %w", err)
 		}
 	}
+	return
+}
 
-	// Render finder patterns as unified 7x7 images
-	if finderImg != "" {
-		finderSize := 7 * moduleSize
+func (r *renderer) renderFinderImages(buf *bytes.Buffer, finderImg string, matrixSize int) {
+	quietZone := r.config.QuietZone
+	totalModules := matrixSize + 2*quietZone
+	moduleSize := float64(r.config.Size) / float64(totalModules)
+	finderSize := 7 * moduleSize
 
-		// Top-left finder
-		px := float64(quietZone) * moduleSize
-		py := float64(quietZone) * moduleSize
-		fmt.Fprintf(&buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
-			px, py, finderSize, finderSize, finderImg)
-		buf.WriteString("\n")
+	// Top-left finder
+	px := float64(quietZone) * moduleSize
+	py := float64(quietZone) * moduleSize
+	fmt.Fprintf(buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
+		px, py, finderSize, finderSize, finderImg)
+	buf.WriteString("\n")
 
-		// Top-right finder
-		px = float64(quietZone+matrixSize-7) * moduleSize
-		py = float64(quietZone) * moduleSize
-		fmt.Fprintf(&buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s" transform="scale(-1,1) translate(%.2f,0)"/>`,
-			px, py, finderSize, finderSize, finderImg, -(2*px + finderSize))
-		buf.WriteString("\n")
+	// Top-right finder
+	px = float64(quietZone+matrixSize-7) * moduleSize
+	py = float64(quietZone) * moduleSize
+	fmt.Fprintf(buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s" transform="scale(-1,1) translate(%.2f,0)"/>`,
+		px, py, finderSize, finderSize, finderImg, -(2*px + finderSize))
+	buf.WriteString("\n")
 
-		// Bottom-left finder
-		px = float64(quietZone) * moduleSize
-		py = float64(quietZone+matrixSize-7) * moduleSize
-		fmt.Fprintf(&buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s" transform="scale(1,-1) translate(0,%.2f)"/>`,
-			px, py, finderSize, finderSize, finderImg, -(2*py + finderSize))
-		buf.WriteString("\n")
-	}
+	// Bottom-left finder
+	px = float64(quietZone) * moduleSize
+	py = float64(quietZone+matrixSize-7) * moduleSize
+	fmt.Fprintf(buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s" transform="scale(1,-1) translate(0,%.2f)"/>`,
+		px, py, finderSize, finderSize, finderImg, -(2*py + finderSize))
+	buf.WriteString("\n")
+}
 
-	// Render alignment patterns as unified 5x5 images
-	if alignImg != "" {
-		alignSize := 5 * moduleSize
-		alignPositions := getAlignmentPositions(matrixSize)
+func (r *renderer) renderAlignmentImages(buf *bytes.Buffer, alignImg string, hasFinderImg bool, matrixSize int) {
+	quietZone := r.config.QuietZone
+	totalModules := matrixSize + 2*quietZone
+	moduleSize := float64(r.config.Size) / float64(totalModules)
+	alignSize := 5 * moduleSize
+	alignPositions := getAlignmentPositions(matrixSize)
 
-		for _, ay := range alignPositions {
-			for _, ax := range alignPositions {
-				// Skip if overlapping with finder patterns
-				if isFinderArea(ax, ay, matrixSize) {
-					continue
-				}
-				// Alignment pattern is centered, so offset by 2
-				px := float64(quietZone+ax-2) * moduleSize
-				py := float64(quietZone+ay-2) * moduleSize
-				fmt.Fprintf(&buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
-					px, py, alignSize, alignSize, alignImg)
-				buf.WriteString("\n")
+	for _, ay := range alignPositions {
+		for _, ax := range alignPositions {
+			// Skip if overlapping with finder patterns
+			if isFinderArea(ax, ay, matrixSize) {
+				continue
 			}
+			// Alignment pattern is centered, so offset by 2
+			px := float64(quietZone+ax-2) * moduleSize
+			py := float64(quietZone+ay-2) * moduleSize
+			fmt.Fprintf(buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
+				px, py, alignSize, alignSize, alignImg)
+			buf.WriteString("\n")
 		}
 	}
+}
+
+func (r *renderer) renderImageModules(buf *bytes.Buffer, moduleImg, finderImg, alignImg string, matrixSize int, hasLogoZone bool, logoMinX, logoMinY, logoMaxX, logoMaxY int) {
+	if moduleImg == "" {
+		return
+	}
+
+	quietZone := r.config.QuietZone
+	totalModules := matrixSize + 2*quietZone
+	moduleSize := float64(r.config.Size) / float64(totalModules)
 
 	// Render regular modules (skip finder and alignment areas if custom images provided)
 	for y := 0; y < matrixSize; y++ {
@@ -388,25 +424,11 @@ func (r *renderer) renderWithImages() ([]byte, error) {
 			px := float64(quietZone+x) * moduleSize
 			py := float64(quietZone+y) * moduleSize
 
-			if moduleImg != "" {
-				fmt.Fprintf(&buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
-					px, py, moduleSize, moduleSize, moduleImg)
-				buf.WriteString("\n")
-			}
+			fmt.Fprintf(buf, `<image x="%.2f" y="%.2f" width="%.2f" height="%.2f" href="%s"/>`,
+				px, py, moduleSize, moduleSize, moduleImg)
+			buf.WriteString("\n")
 		}
 	}
-
-	// Render logo if configured
-	if r.hasLogo() {
-		logoSVG, err := r.renderLogo()
-		if err != nil {
-			return nil, err
-		}
-		buf.WriteString(logoSVG)
-	}
-
-	buf.WriteString("</svg>")
-	return buf.Bytes(), nil
 }
 
 // getAlignmentPositions returns center positions of alignment patterns
@@ -571,12 +593,12 @@ func loadImageAsDataURI(path string) (string, error) {
 	return fmt.Sprintf("data:%s;base64,%s", mimeType, encoded), nil
 }
 
+// pathCommandRe matches SVG path commands and their arguments
+var pathCommandRe = regexp.MustCompile(`([MLHVACQZmlhvacqz])([^MLHVACQZmlhvacqz]*)`)
+
 // transformPath scales and translates an SVG path from unit coordinates
 func transformPath(path string, tx, ty, scale float64) string {
-	// Parse path and transform coordinates
-	// Handle both absolute (uppercase) and relative (lowercase) commands
-	re := regexp.MustCompile(`([MLHVACQZmlhvacqz])([^MLHVACQZmlhvacqz]*)`)
-	matches := re.FindAllStringSubmatch(path, -1)
+	matches := pathCommandRe.FindAllStringSubmatch(path, -1)
 
 	var result strings.Builder
 	var curX, curY float64 // Track current position for relative commands
@@ -584,115 +606,147 @@ func transformPath(path string, tx, ty, scale float64) string {
 	for _, match := range matches {
 		cmd := match[1]
 		args := strings.TrimSpace(match[2])
-		isRelative := cmd >= "a" && cmd <= "z"
-		cmdUpper := strings.ToUpper(cmd)
 
-		switch cmdUpper {
-		case "M", "L":
-			parts := splitNumbers(args)
-			if len(parts) >= 2 {
-				var x, y float64
-				if isRelative {
-					x = curX + parts[0]*scale
-					y = curY + parts[1]*scale
-				} else {
-					x = parts[0]*scale + tx
-					y = parts[1]*scale + ty
-				}
-				curX, curY = x, y
-				fmt.Fprintf(&result, "%s%.2f %.2f", cmdUpper, x, y)
-			}
-		case "H":
-			parts := splitNumbers(args)
-			if len(parts) >= 1 {
-				var x float64
-				if isRelative {
-					x = curX + parts[0]*scale
-				} else {
-					x = parts[0]*scale + tx
-				}
-				curX = x
-				fmt.Fprintf(&result, "L%.2f %.2f", x, curY)
-			}
-		case "V":
-			parts := splitNumbers(args)
-			if len(parts) >= 1 {
-				var y float64
-				if isRelative {
-					y = curY + parts[0]*scale
-				} else {
-					y = parts[0]*scale + ty
-				}
-				curY = y
-				fmt.Fprintf(&result, "L%.2f %.2f", curX, y)
-			}
-		case "A":
-			// Arc: rx ry rotation large-arc sweep x y
-			parts := splitNumbers(args)
-			if len(parts) >= 7 {
-				rx := parts[0] * scale
-				ry := parts[1] * scale
-				rot := parts[2]
-				large := parts[3]
-				sweep := parts[4]
-				var x, y float64
-				if isRelative {
-					x = curX + parts[5]*scale
-					y = curY + parts[6]*scale
-				} else {
-					x = parts[5]*scale + tx
-					y = parts[6]*scale + ty
-				}
-				curX, curY = x, y
-				fmt.Fprintf(&result, "A%.2f %.2f %.0f %.0f %.0f %.2f %.2f", rx, ry, rot, large, sweep, x, y)
-			}
-		case "C":
-			// Cubic bezier: x1 y1 x2 y2 x y
-			parts := splitNumbers(args)
-			if len(parts) >= 6 {
-				var x1, y1, x2, y2, x, y float64
-				if isRelative {
-					x1 = curX + parts[0]*scale
-					y1 = curY + parts[1]*scale
-					x2 = curX + parts[2]*scale
-					y2 = curY + parts[3]*scale
-					x = curX + parts[4]*scale
-					y = curY + parts[5]*scale
-				} else {
-					x1 = parts[0]*scale + tx
-					y1 = parts[1]*scale + ty
-					x2 = parts[2]*scale + tx
-					y2 = parts[3]*scale + ty
-					x = parts[4]*scale + tx
-					y = parts[5]*scale + ty
-				}
-				curX, curY = x, y
-				fmt.Fprintf(&result, "C%.2f %.2f %.2f %.2f %.2f %.2f", x1, y1, x2, y2, x, y)
-			}
-		case "Q":
-			// Quadratic bezier: x1 y1 x y
-			parts := splitNumbers(args)
-			if len(parts) >= 4 {
-				var x1, y1, x, y float64
-				if isRelative {
-					x1 = curX + parts[0]*scale
-					y1 = curY + parts[1]*scale
-					x = curX + parts[2]*scale
-					y = curY + parts[3]*scale
-				} else {
-					x1 = parts[0]*scale + tx
-					y1 = parts[1]*scale + ty
-					x = parts[2]*scale + tx
-					y = parts[3]*scale + ty
-				}
-				curX, curY = x, y
-				fmt.Fprintf(&result, "Q%.2f %.2f %.2f %.2f", x1, y1, x, y)
-			}
-		case "Z":
-			result.WriteString("Z")
-		}
+		segment, newX, newY := processPathCommand(cmd, args, curX, curY, tx, ty, scale)
+		result.WriteString(segment)
+		curX, curY = newX, newY
 	}
+
 	return result.String()
+}
+
+// processPathCommand handles a single SVG path command transformation
+func processPathCommand(cmd, args string, curX, curY, tx, ty, scale float64) (string, float64, float64) {
+	isRelative := cmd >= "a" && cmd <= "z"
+	cmdUpper := strings.ToUpper(cmd)
+
+	switch cmdUpper {
+	case "M", "L":
+		return handleMoveLine(cmdUpper, args, curX, curY, tx, ty, scale, isRelative)
+	case "H":
+		return handleHorizontal(args, curX, curY, tx, ty, scale, isRelative)
+	case "V":
+		return handleVertical(args, curX, curY, tx, ty, scale, isRelative)
+	case "A":
+		return handleArc(args, curX, curY, tx, ty, scale, isRelative)
+	case "C":
+		return handleCubic(args, curX, curY, tx, ty, scale, isRelative)
+	case "Q":
+		return handleQuad(args, curX, curY, tx, ty, scale, isRelative)
+	case "Z":
+		return "Z ", curX, curY
+	}
+
+	return "", curX, curY
+}
+
+func handleMoveLine(cmd, args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 2 {
+		return "", curX, curY
+	}
+	var x, y float64
+	if isRelative {
+		x = curX + parts[0]*scale
+		y = curY + parts[1]*scale
+	} else {
+		x = parts[0]*scale + tx
+		y = parts[1]*scale + ty
+	}
+	return fmt.Sprintf("%s%.2f %.2f ", cmd, x, y), x, y
+}
+
+func handleHorizontal(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 1 {
+		return "", curX, curY
+	}
+	var x float64
+	if isRelative {
+		x = curX + parts[0]*scale
+	} else {
+		x = parts[0]*scale + tx
+	}
+	return fmt.Sprintf("L%.2f %.2f ", x, curY), x, curY
+}
+
+func handleVertical(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 1 {
+		return "", curX, curY
+	}
+	var y float64
+	if isRelative {
+		y = curY + parts[0]*scale
+	} else {
+		y = parts[0]*scale + ty
+	}
+	return fmt.Sprintf("L%.2f %.2f ", curX, y), curX, y
+}
+
+func handleArc(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 7 {
+		return "", curX, curY
+	}
+	rx := parts[0] * scale
+	ry := parts[1] * scale
+	rot := parts[2]
+	large := parts[3]
+	sweep := parts[4]
+	var x, y float64
+	if isRelative {
+		x = curX + parts[5]*scale
+		y = curY + parts[6]*scale
+	} else {
+		x = parts[5]*scale + tx
+		y = parts[6]*scale + ty
+	}
+	return fmt.Sprintf("A%.2f %.2f %.0f %.0f %.0f %.2f %.2f ", rx, ry, rot, large, sweep, x, y), x, y
+}
+
+func handleCubic(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 6 {
+		return "", curX, curY
+	}
+	var x1, y1, x2, y2, x, y float64
+	if isRelative {
+		x1 = curX + parts[0]*scale
+		y1 = curY + parts[1]*scale
+		x2 = curX + parts[2]*scale
+		y2 = curY + parts[3]*scale
+		x = curX + parts[4]*scale
+		y = curY + parts[5]*scale
+	} else {
+		x1 = parts[0]*scale + tx
+		y1 = parts[1]*scale + ty
+		x2 = parts[2]*scale + tx
+		y2 = parts[3]*scale + ty
+		x = parts[4]*scale + tx
+		y = parts[5]*scale + ty
+	}
+	return fmt.Sprintf("C%.2f %.2f %.2f %.2f %.2f %.2f ", x1, y1, x2, y2, x, y), x, y
+}
+
+func handleQuad(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+	parts := splitNumbers(args)
+	if len(parts) < 4 {
+		return "", curX, curY
+	}
+	var x1, y1, x, y float64
+	if isRelative {
+		x1 = curX + parts[0]*scale
+		y1 = curY + parts[1]*scale
+		x = curX + parts[2]*scale
+		y = curY + parts[3]*scale
+	} else {
+		x1 = parts[0]*scale + tx
+		y1 = parts[1]*scale + ty
+		x = parts[2]*scale + tx
+		y = parts[3]*scale + ty
+	}
+	return fmt.Sprintf("Q%.2f %.2f %.2f %.2f ", x1, y1, x, y), x, y
 }
 
 // splitNumbers parses space/comma separated numbers

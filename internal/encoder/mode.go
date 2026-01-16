@@ -27,39 +27,29 @@ func (m Mode) ModeIndicator() uint8 {
 }
 
 func (m Mode) CharCountBits(version Version) int {
-	if version >= 1 && version <= 9 {
-		switch m {
-		case ModeNumeric:
-			return 10
-		case ModeAlphanumeric:
-			return 9
-		case ModeByte:
-			return 8
-		case ModeKanji:
-			return 8
-		}
-	} else if version >= 10 && version <= 26 {
-		switch m {
-		case ModeNumeric:
-			return 12
-		case ModeAlphanumeric:
-			return 11
-		case ModeByte:
-			return 16
-		case ModeKanji:
-			return 10
-		}
-	} else if version >= 27 && version <= 40 {
-		switch m {
-		case ModeNumeric:
-			return 14
-		case ModeAlphanumeric:
-			return 13
-		case ModeByte:
-			return 16
-		case ModeKanji:
-			return 12
-		}
+	if version < 1 || version > 40 {
+		return 0
+	}
+
+	// 3 ranges: 1-9, 10-26, 27-40
+	var i int
+	if version <= 9 {
+		i = 0
+	} else if version <= 26 {
+		i = 1
+	} else {
+		i = 2
+	}
+
+	switch m {
+	case ModeNumeric:
+		return []int{10, 12, 14}[i]
+	case ModeAlphanumeric:
+		return []int{9, 11, 13}[i]
+	case ModeByte:
+		return []int{8, 16, 16}[i]
+	case ModeKanji:
+		return []int{8, 10, 12}[i]
 	}
 	return 0
 }
