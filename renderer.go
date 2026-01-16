@@ -396,28 +396,7 @@ func (r *renderer) renderImageModules(buf *bytes.Buffer, moduleImg, finderImg, a
 	// Render regular modules (skip finder and alignment areas if custom images provided)
 	for y := 0; y < matrixSize; y++ {
 		for x := 0; x < matrixSize; x++ {
-			// Skip modules in the logo zone
-			if hasLogoZone && x >= logoMinX && x <= logoMaxX && y >= logoMinY && y <= logoMaxY {
-				continue
-			}
-
-			mod := r.matrix.Get(x, y)
-			if !mod.Dark {
-				continue
-			}
-
-			// Skip finder pattern modules if we rendered them as unified images
-			if finderImg != "" && mod.Type == encoder.ModuleFinder {
-				continue
-			}
-
-			// Skip alignment pattern modules if we rendered them as unified images
-			if alignImg != "" && mod.Type == encoder.ModuleAlignment {
-				continue
-			}
-
-			// Skip separator modules around finders when using custom finder images
-			if finderImg != "" && mod.Type == encoder.ModuleFinderSeparator {
+			if r.shouldSkipModule(x, y, moduleImg, finderImg, alignImg, hasLogoZone, logoMinX, logoMinY, logoMaxX, logoMaxY) {
 				continue
 			}
 
@@ -429,6 +408,35 @@ func (r *renderer) renderImageModules(buf *bytes.Buffer, moduleImg, finderImg, a
 			buf.WriteString("\n")
 		}
 	}
+}
+
+func (r *renderer) shouldSkipModule(x, y int, moduleImg, finderImg, alignImg string, hasLogoZone bool, logoMinX, logoMinY, logoMaxX, logoMaxY int) bool {
+	// Skip modules in the logo zone
+	if hasLogoZone && x >= logoMinX && x <= logoMaxX && y >= logoMinY && y <= logoMaxY {
+		return true
+	}
+
+	mod := r.matrix.Get(x, y)
+	if !mod.Dark {
+		return true
+	}
+
+	// Skip finder pattern modules if we rendered them as unified images
+	if finderImg != "" && mod.Type == encoder.ModuleFinder {
+		return true
+	}
+
+	// Skip alignment pattern modules if we rendered them as unified images
+	if alignImg != "" && mod.Type == encoder.ModuleAlignment {
+		return true
+	}
+
+	// Skip separator modules around finders when using custom finder images
+	if finderImg != "" && mod.Type == encoder.ModuleFinderSeparator {
+		return true
+	}
+
+	return false
 }
 
 // getAlignmentPositions returns center positions of alignment patterns
