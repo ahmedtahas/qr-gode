@@ -280,11 +280,20 @@ func (q *QRCode) SVGString() (string, error) {
 // PNG output is rasterized from the SVG pipeline, so it supports the
 // same shapes, gradients, custom images, and logos as SVG().
 func (q *QRCode) PNG() ([]byte, error) {
-	svg, err := q.SVG()
+	if q.data == "" {
+		return nil, &ValidationError{Field: "Data", Message: "cannot be empty"}
+	}
+	if errs := q.Validate(); len(errs) > 0 {
+		return nil, errs[0]
+	}
+	ecl := encoder.ErrorCorrectionLevel(q.config.ErrorCorrection)
+	enc := encoder.New(q.data, ecl)
+	matrix, err := enc.Encode()
 	if err != nil {
 		return nil, err
 	}
-	return rasterizeSVGToPNG(svg, q.config.Size, q.config.Size)
+	r := newRenderer(matrix, q.config)
+	return r.renderPNG()
 }
 
 // SaveAs generates the QR code and saves it to the specified file.

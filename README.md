@@ -17,6 +17,8 @@ A feature-rich QR code generator library for Go with extensive customization opt
 | Classic | Circle | Rounded · linear gradient | Dot · radial gradient |
 | <img src="assets/showcase/05-heart.svg" width="140" alt="Heart modules"> | <img src="assets/showcase/06-star.svg" width="140" alt="Star with gradient"> | <img src="assets/showcase/07-diamond.svg" width="140" alt="Diamond modules"> | <img src="assets/showcase/08-darkmode.svg" width="140" alt="Dark mode"> |
 | Heart | Star · gradient | Diamond | Dark mode |
+| <img src="assets/showcase/09-logo-classic.svg" width="140" alt="Classic with logo"> | <img src="assets/showcase/10-logo-gradient.svg" width="140" alt="Rounded gradient with logo"> |  |  |
+| Logo · classic | Logo · rounded gradient |  |  |
 
 > Reproduce these with `go run ./cmd/gen-showcase`.
 

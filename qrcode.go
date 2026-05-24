@@ -65,13 +65,21 @@ func GenerateToFile(data string, cfg *Config, path string) error {
 // GeneratePNG creates a QR code and returns it as PNG bytes.
 // If cfg is nil, DefaultConfig() is used.
 func GeneratePNG(data string, cfg *Config) ([]byte, error) {
-	svg, err := Generate(data, cfg)
-	if err != nil {
-		return nil, err
+	if data == "" {
+		return nil, &ValidationError{Field: "Data", Message: "cannot be empty"}
 	}
-
 	if cfg == nil {
 		cfg = DefaultConfig()
 	}
-	return rasterizeSVGToPNG(svg, cfg.Size, cfg.Size)
+	if errs := ValidateConfig(cfg); len(errs) > 0 {
+		return nil, errs[0]
+	}
+	ecl := encoder.ErrorCorrectionLevel(cfg.ErrorCorrection)
+	enc := encoder.New(data, ecl)
+	matrix, err := enc.Encode()
+	if err != nil {
+		return nil, err
+	}
+	r := newRenderer(matrix, cfg)
+	return r.renderPNG()
 }
