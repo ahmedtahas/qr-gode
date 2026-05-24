@@ -88,7 +88,11 @@ func (r *renderer) calculateLogoDimensions() (float64, float64, float64, error) 
 	if logoHeight > logoWidth {
 		padding = logoHeight
 	}
-	padding *= 0.1
+	paddingFraction := r.config.Logo.Padding
+	if paddingFraction <= 0 {
+		paddingFraction = 0.1
+	}
+	padding *= paddingFraction
 
 	return logoWidth, logoHeight, padding, nil
 }
@@ -277,6 +281,11 @@ func (r *renderer) writeBackground(buf *bytes.Buffer) {
 
 func (r *renderer) calculateExclusionZone() (minX, minY, maxX, maxY int, active bool, err error) {
 	if !r.hasLogo() {
+		return 0, 0, 0, 0, false, nil
+	}
+	// Overlay mode keeps every module; only the logo image (and its
+	// optional background rect) draw on top.
+	if r.config.Logo.Mode == LogoOverlay {
 		return 0, 0, 0, 0, false, nil
 	}
 

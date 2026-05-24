@@ -17,6 +17,19 @@ const (
 	LevelH                             // ~30% recovery capacity
 )
 
+// LogoMode controls how the logo interacts with the QR modules.
+type LogoMode int
+
+const (
+	// LogoExclude (default) skips the modules behind the logo so the scanner
+	// never sees them. The QR's error-correction budget must absorb the loss.
+	LogoExclude LogoMode = iota
+	// LogoOverlay renders every module and stamps the logo on top. Scanners
+	// see whatever isn't physically occluded, leaving more of the
+	// error-correction budget intact for print-quality variance.
+	LogoOverlay
+)
+
 // Shape defines the module shape for QR code rendering.
 type Shape string
 
@@ -129,6 +142,8 @@ type LogoConfig struct {
 	Width      int         // Optional: logo width in pixels (0 = auto-calculate)
 	Height     int         // Optional: logo height in pixels (0 = auto-calculate)
 	Background string      // Background color behind logo (hex or "transparent", default white)
+	Mode       LogoMode    // LogoExclude (default) or LogoOverlay
+	Padding    float64     // Padding around the logo as a fraction of its longer side. 0 = default (0.1).
 }
 
 // CustomImages defines custom PNG images for different QR elements.

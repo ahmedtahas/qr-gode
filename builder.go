@@ -203,6 +203,24 @@ func (q *QRCode) LogoBackground(color string) *QRCode {
 	return q
 }
 
+// LogoMode controls whether the modules behind the logo are skipped
+// (LogoExclude, default) or rendered with the logo composited on top
+// (LogoOverlay). Overlay keeps the error-correction budget intact.
+func (q *QRCode) LogoMode(mode LogoMode) *QRCode {
+	q.ensureLogo()
+	q.config.Logo.Mode = mode
+	return q
+}
+
+// LogoPadding sets the padding around the logo as a fraction of its
+// longer side. Default is 0.1 (10%). Smaller values pack modules tighter
+// to the logo; pass 0 to revert to the default.
+func (q *QRCode) LogoPadding(fraction float64) *QRCode {
+	q.ensureLogo()
+	q.config.Logo.Padding = fraction
+	return q
+}
+
 func (q *QRCode) ensureImages() {
 	if q.config.Images == nil {
 		q.config.Images = &CustomImages{}

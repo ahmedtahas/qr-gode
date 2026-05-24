@@ -2,6 +2,7 @@ package qrgode
 
 import (
 	"bytes"
+	"image"
 	"io"
 	"os"
 	"strings"
@@ -218,6 +219,44 @@ func TestGetConfig(t *testing.T) {
 
 	if cfg != qr.config {
 		t.Error("expected GetConfig to return same config instance")
+	}
+}
+
+func TestLogoMode(t *testing.T) {
+	qr := New("test")
+	qr.LogoMode(LogoOverlay)
+	if qr.config.Logo == nil {
+		t.Fatal("expected Logo config to be initialized")
+	}
+	if qr.config.Logo.Mode != LogoOverlay {
+		t.Errorf("expected LogoOverlay, got %d", qr.config.Logo.Mode)
+	}
+}
+
+func TestLogoPadding(t *testing.T) {
+	qr := New("test").LogoPadding(0.05)
+	if qr.config.Logo.Padding != 0.05 {
+		t.Errorf("expected padding 0.05, got %f", qr.config.Logo.Padding)
+	}
+}
+
+func TestLogoModeAffectsRendering(t *testing.T) {
+	// Same logo, different modes. Overlay renders modules in the center too,
+	// so the SVG path string is measurably longer.
+	logo := image.NewRGBA(image.Rect(0, 0, 64, 64))
+	build := func(mode LogoMode) []byte {
+		qr := New("https://example.com").Size(320).ErrorCorrection(LevelH).
+			LogoImage(logo).LogoDimensions(100, 100).LogoMode(mode)
+		svg, err := qr.SVG()
+		if err != nil {
+			t.Fatalf("svg: %v", err)
+		}
+		return svg
+	}
+	excludeLen := len(build(LogoExclude))
+	overlayLen := len(build(LogoOverlay))
+	if overlayLen <= excludeLen {
+		t.Errorf("expected overlay SVG (%d) to be longer than exclude SVG (%d)", overlayLen, excludeLen)
 	}
 }
 

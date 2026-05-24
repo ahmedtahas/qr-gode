@@ -17,8 +17,8 @@ A feature-rich QR code generator library for Go with extensive customization opt
 | Classic | Circle | Rounded · linear gradient | Dot · radial gradient |
 | <img src="assets/showcase/05-heart.svg" width="140" alt="Heart modules"> | <img src="assets/showcase/06-star.svg" width="140" alt="Star with gradient"> | <img src="assets/showcase/07-diamond.svg" width="140" alt="Diamond modules"> | <img src="assets/showcase/08-darkmode.svg" width="140" alt="Dark mode"> |
 | Heart | Star · gradient | Diamond | Dark mode |
-| <img src="assets/showcase/09-logo-classic.svg" width="140" alt="Classic with logo"> | <img src="assets/showcase/10-logo-gradient.svg" width="140" alt="Rounded gradient with logo"> |  |  |
-| Logo · classic | Logo · rounded gradient |  |  |
+| <img src="assets/showcase/09-logo-tight-padding.svg" width="140" alt="Logo with tight padding"> | <img src="assets/showcase/10-logo-loose-padding.svg" width="140" alt="Logo with loose padding"> | <img src="assets/showcase/11-logo-overlay.svg" width="140" alt="Logo in overlay mode"> |  |
+| Logo · tight padding | Logo · loose padding | Logo · overlay mode |  |
 
 > Reproduce these with `go run ./cmd/gen-showcase`.
 
@@ -27,7 +27,7 @@ A feature-rich QR code generator library for Go with extensive customization opt
 - Multiple module shapes (square, circle, rounded, diamond, dot, star, heart)
 - Solid colors and gradients (linear & radial)
 - Custom images for finder patterns, alignment patterns, and modules
-- Logo support with automatic sizing and aspect ratio preservation (from file or in-memory image)
+- Logo support with automatic sizing, configurable padding, and exclude/overlay placement modes
 - SVG and PNG output — every styling feature works in both formats
 - Configurable error correction levels
 
@@ -285,7 +285,25 @@ Any square image that represents a single dark module.
 - **In-memory support**: Use `LogoImage()` to pass an `image.Image` directly
 - **SVG logos**: Treated as 1:1 aspect ratio, scale perfectly at any size
 - **Background**: White rounded rectangle by default, can be set to transparent
-- **Exclusion zone**: Modules under the logo area are not rendered (cleaner than overlay)
+
+### Placement: exclude vs. overlay
+
+```go
+// Exclude (default): modules under the logo are skipped — cleaner look,
+// the error-correction budget absorbs the loss.
+qrgode.New(data).Logo("logo.png") // implicit LogoMode(qrgode.LogoExclude)
+
+// Overlay: render every module and stamp the logo on top. Scanners see
+// more data, which helps when print quality varies. Pair with a transparent
+// logo background if you want the QR pattern to show through.
+qrgode.New(data).
+    Logo("logo.png").
+    LogoMode(qrgode.LogoOverlay).
+    LogoBackground("transparent")
+```
+
+`LogoPadding(0.05)` tightens the space around the logo (default 0.1, fraction
+of the logo's longer side).
 
 ## Examples
 

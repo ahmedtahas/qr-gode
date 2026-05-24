@@ -109,6 +109,21 @@ func Example_scannabilityCheck() {
 	}
 }
 
+func Example_logoOverlay() {
+	// Overlay mode: render every module and stamp the logo on top, keeping
+	// more of the error-correction budget intact than exclude mode.
+	svg, err := qrgode.New("https://example.com").
+		Logo("logo.png").
+		LogoMode(qrgode.LogoOverlay).
+		LogoBackground("transparent").
+		LogoPadding(0.05).
+		SVG()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Generated %d bytes of SVG\n", len(svg))
+}
+
 func Example_advancedConfig() {
 	// For advanced usage, access the underlying config
 	qr := qrgode.New("https://example.com")
