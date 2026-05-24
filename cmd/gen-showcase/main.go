@@ -76,19 +76,12 @@ func main() {
 			return qrgode.New(data).Size(size).Shape(qrgode.ShapeRounded).
 				Background("#0f1419").Foreground("#e6e6e6")
 		}},
-		{"09-logo-tight-padding", "Logo · tight padding", func() *qrgode.QRCode {
+		{"09-logo-classic", "Logo · classic", func() *qrgode.QRCode {
 			return qrgode.New(data).Size(size).Shape(qrgode.ShapeRounded).
 				LinearGradient(45, "#4ecdc4", "#6c5ce7").
-				ErrorCorrection(qrgode.LevelH).LogoImage(logo).
-				LogoPadding(0.02)
+				ErrorCorrection(qrgode.LevelH).LogoImage(logo)
 		}},
-		{"10-logo-loose-padding", "Logo · loose padding", func() *qrgode.QRCode {
-			return qrgode.New(data).Size(size).Shape(qrgode.ShapeRounded).
-				LinearGradient(45, "#4ecdc4", "#6c5ce7").
-				ErrorCorrection(qrgode.LevelH).LogoImage(logo).
-				LogoPadding(0.35)
-		}},
-		{"11-logo-overlay", "Logo · overlay mode", func() *qrgode.QRCode {
+		{"10-logo-overlay", "Logo · overlay mode", func() *qrgode.QRCode {
 			return qrgode.New(data).Size(size).Shape(qrgode.ShapeCircle).
 				Foreground("#2d3436").
 				ErrorCorrection(qrgode.LevelH).LogoImage(logo).
