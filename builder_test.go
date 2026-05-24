@@ -1,6 +1,8 @@
 package qrgode
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -134,14 +136,79 @@ func TestSaveAs(t *testing.T) {
 	}
 }
 
-func TestSaveAsPNG(t *testing.T) {
-	err := New("test").SaveAs("test.png")
+func TestPNG(t *testing.T) {
+	data, err := New("https://example.com").Size(256).PNG()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(data) < 8 {
+		t.Fatalf("PNG output too small: %d bytes", len(data))
+	}
+	// PNG magic number: 89 50 4E 47 0D 0A 1A 0A
+	magic := []byte{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A}
+	if !bytes.Equal(data[:8], magic) {
+		t.Errorf("output does not have PNG magic bytes: %x", data[:8])
+	}
+}
 
+func TestSaveAsPNG(t *testing.T) {
+	tmpFile := os.TempDir() + "/test_qr.png"
+	defer os.Remove(tmpFile)
+
+	if err := New("test").SaveAs(tmpFile); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	info, err := os.Stat(tmpFile)
+	if err != nil {
+		t.Fatalf("file not created: %v", err)
+	}
+	if info.Size() == 0 {
+		t.Error("expected non-empty PNG file")
+	}
+}
+
+func TestSaveAsUnsupported(t *testing.T) {
+	err := New("test").SaveAs("test.jpg")
 	if err == nil {
-		t.Error("expected error for PNG format")
+		t.Error("expected error for unsupported format")
 	}
 	if _, ok := err.(*UnsupportedFormatError); !ok {
 		t.Errorf("expected UnsupportedFormatError, got %T", err)
+	}
+}
+
+func TestWriteTo(t *testing.T) {
+	var buf bytes.Buffer
+	n, err := New("https://example.com").Size(256).WriteTo(&buf)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n == 0 {
+		t.Error("expected non-zero bytes written")
+	}
+	if int64(buf.Len()) != n {
+		t.Errorf("WriteTo reported %d bytes but buffer has %d", n, buf.Len())
+	}
+	if !bytes.HasPrefix(buf.Bytes(), []byte("<svg")) {
+		t.Error("expected SVG output to begin with <svg")
+	}
+
+	// Confirm it implements io.WriterTo.
+	var _ io.WriterTo = New("test")
+}
+
+func TestWriteToError(t *testing.T) {
+	// Empty data should fail before writing.
+	var buf bytes.Buffer
+	n, err := New("").WriteTo(&buf)
+	if err == nil {
+		t.Error("expected error for empty data")
+	}
+	if n != 0 {
+		t.Errorf("expected 0 bytes written on error, got %d", n)
+	}
+	if buf.Len() != 0 {
+		t.Errorf("expected empty buffer on error, got %d bytes", buf.Len())
 	}
 }
 

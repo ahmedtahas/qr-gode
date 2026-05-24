@@ -2,6 +2,7 @@ package qrgode
 
 import (
 	"image"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -250,6 +251,22 @@ func (q *QRCode) SVG() ([]byte, error) {
 	return renderer.renderSVG()
 }
 
+// WriteTo generates the QR code and streams the SVG bytes to w.
+// It implements io.WriterTo, making it convenient for HTTP handlers:
+//
+//	func handler(w http.ResponseWriter, r *http.Request) {
+//	    w.Header().Set("Content-Type", "image/svg+xml")
+//	    qrgode.New(r.URL.Query().Get("data")).WriteTo(w)
+//	}
+func (q *QRCode) WriteTo(w io.Writer) (int64, error) {
+	svg, err := q.SVG()
+	if err != nil {
+		return 0, err
+	}
+	n, err := w.Write(svg)
+	return int64(n), err
+}
+
 // SVGString generates and returns the QR code as an SVG string.
 func (q *QRCode) SVGString() (string, error) {
 	svg, err := q.SVG()
@@ -259,19 +276,37 @@ func (q *QRCode) SVGString() (string, error) {
 	return string(svg), nil
 }
 
-// SaveAs generates the QR code and saves it to the specified file.
-// Currently supports .svg files. PNG support is planned.
-func (q *QRCode) SaveAs(path string) error {
-	ext := strings.ToLower(filepath.Ext(path))
-	if ext == ".png" {
-		return &UnsupportedFormatError{Format: "png"}
-	}
-
+// PNG generates and returns the QR code as PNG bytes.
+// PNG output is rasterized from the SVG pipeline, so it supports the
+// same shapes, gradients, custom images, and logos as SVG().
+func (q *QRCode) PNG() ([]byte, error) {
 	svg, err := q.SVG()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return os.WriteFile(path, svg, 0644)
+	return rasterizeSVGToPNG(svg, q.config.Size, q.config.Size)
+}
+
+// SaveAs generates the QR code and saves it to the specified file.
+// The format is chosen from the file extension: .svg or .png.
+func (q *QRCode) SaveAs(path string) error {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".png":
+		data, err := q.PNG()
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(path, data, 0644)
+	case ".svg", "":
+		svg, err := q.SVG()
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(path, svg, 0644)
+	default:
+		return &UnsupportedFormatError{Format: strings.TrimPrefix(ext, ".")}
+	}
 }
 
 // GetConfig returns the underlying configuration for advanced customization.
@@ -285,5 +320,5 @@ type UnsupportedFormatError struct {
 }
 
 func (e *UnsupportedFormatError) Error() string {
-	return "unsupported format: " + e.Format + " (only SVG is currently supported)"
+	return "unsupported format: " + e.Format + " (supported formats: svg, png)"
 }

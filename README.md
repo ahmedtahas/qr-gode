@@ -2,12 +2,23 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ahmedtahas/qr-gode.svg)](https://pkg.go.dev/github.com/ahmedtahas/qr-gode)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ahmedtahas/qr-gode)](https://goreportcard.com/report/github.com/ahmedtahas/qr-gode)
-[![Go](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml/badge.svg)](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml)
+[![CI](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml/badge.svg)](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![qr-gode banner](assets/social_preview_banner.png)
 
 A feature-rich QR code generator library for Go with extensive customization options.
+
+## Showcase
+
+|     |     |     |     |
+| :-: | :-: | :-: | :-: |
+| <img src="assets/showcase/01-square.svg" width="140" alt="Classic square"> | <img src="assets/showcase/02-circle.svg" width="140" alt="Circle modules"> | <img src="assets/showcase/03-rounded-linear.svg" width="140" alt="Rounded with linear gradient"> | <img src="assets/showcase/04-dot-radial.svg" width="140" alt="Dot with radial gradient"> |
+| Classic | Circle | Rounded · linear gradient | Dot · radial gradient |
+| <img src="assets/showcase/05-heart.svg" width="140" alt="Heart modules"> | <img src="assets/showcase/06-star.svg" width="140" alt="Star with gradient"> | <img src="assets/showcase/07-diamond.svg" width="140" alt="Diamond modules"> | <img src="assets/showcase/08-darkmode.svg" width="140" alt="Dark mode"> |
+| Heart | Star · gradient | Diamond | Dark mode |
+
+> Reproduce these with `go run ./cmd/gen-showcase`.
 
 ## Features
 
@@ -15,7 +26,7 @@ A feature-rich QR code generator library for Go with extensive customization opt
 - Solid colors and gradients (linear & radial)
 - Custom images for finder patterns, alignment patterns, and modules
 - Logo support with automatic sizing and aspect ratio preservation (from file or in-memory image)
-- SVG output with clean, optimized markup
+- SVG and PNG output — every styling feature works in both formats
 - Configurable error correction levels
 
 ## Installation
@@ -49,7 +60,7 @@ qr-gode -finder-img finder.png -module-img dot.png "Custom QR"
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-o` | Output file path (must end in .svg) | `qrcode.svg` |
+| `-o` | Output file path (.svg or .png) | `qrcode.svg` |
 | `-size` | Output size in pixels | `512` |
 | `-shape` | Module shape | `square` |
 | `-fg` | Foreground color (hex) | `#000000` |
@@ -226,6 +237,25 @@ Use the typed `Shape` constants for type safety:
 
 When adding a logo, consider using `LevelQ` or `LevelH` to ensure the QR code remains scannable.
 
+### Scannability check
+
+For logo+ECL combinations that are likely to break scanning, call
+`ScannabilityWarnings()` and surface the results however you like:
+
+```go
+qr := qrgode.New("https://example.com").
+    Logo("logo.png").
+    ErrorCorrection(qrgode.LevelM)
+
+for _, msg := range qr.ScannabilityWarnings() {
+    log.Println("qrgode:", msg)
+}
+```
+
+The check is heuristic — print quality, contrast, and scanner camera also
+affect real-world scannability — but it catches the common mistake of pairing
+a large logo with a low error-correction level.
+
 ## Custom Images
 
 ### Finder Pattern Image
@@ -260,18 +290,29 @@ Any square image that represents a single dark module.
 ### Generate to File
 
 ```go
+// SVG or PNG — chosen from the file extension
 err := qrgode.New("https://example.com").
     Shape(qrgode.ShapeCircle).
     LinearGradient(45, "#667eea", "#764ba2").
     Logo("logo.png").
-    SaveAs("output.svg") // Currently only supports .svg
+    SaveAs("output.png")
 ```
 
 ### Generate to Bytes
 
 ```go
 svg, err := qrgode.New("https://example.com").SVG()
-// Use svg bytes directly (e.g., HTTP response)
+png, err := qrgode.New("https://example.com").PNG()
+```
+
+### Stream to an io.Writer
+
+```go
+// HTTP handler — no intermediate []byte allocation
+func handler(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "image/svg+xml")
+    qrgode.New(r.URL.Query().Get("data")).WriteTo(w)
+}
 ```
 
 ### Validate Custom Images

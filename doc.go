@@ -26,8 +26,9 @@
 //		Background("#ffffff")
 //
 //	svg, err := qr.SVG()
-//	// or
-//	err := qr.SaveAs("qr.svg")
+//	png, err := qr.PNG()
+//	// or save directly — format chosen from extension
+//	err := qr.SaveAs("qr.png")
 //
 // # Gradients
 //

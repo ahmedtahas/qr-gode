@@ -769,8 +769,3 @@ func splitNumbers(s string) []float64 {
 	}
 	return nums
 }
-
-// RenderPNG generates a PNG by rasterizing the SVG.
-func (r *renderer) RenderPNG() ([]byte, error) {
-	return nil, fmt.Errorf("PNG rendering not supported - use SVG output")
-}

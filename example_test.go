@@ -72,6 +72,19 @@ func Example_customImages() {
 	_, _ = qr.SVG()
 }
 
+func Example_png() {
+	// PNG output — supports every styling feature SVG does
+	png, err := qrgode.New("https://example.com").
+		Size(512).
+		Shape("heart").
+		LinearGradient(45, "#ff6b6b", "#feca57").
+		PNG()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Generated %d bytes of PNG\n", len(png))
+}
+
 func Example_saveToFile() {
 	// Save directly to file
 	err := qrgode.New("https://example.com").
@@ -82,6 +95,17 @@ func Example_saveToFile() {
 
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func Example_scannabilityCheck() {
+	// Warn before generating if the logo + ECL combination is risky.
+	qr := qrgode.New("https://example.com").
+		Logo("big-logo.png").
+		ErrorCorrection(qrgode.LevelM)
+
+	for _, msg := range qr.ScannabilityWarnings() {
+		fmt.Println("warning:", msg)
 	}
 }
 

@@ -2,6 +2,7 @@
 *.svg
 *.png
 !assets/*.png
+!assets/showcase/*.svg
 *.jpg
 *.jpeg
 

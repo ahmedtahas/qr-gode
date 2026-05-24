@@ -41,20 +41,37 @@ func Generate(data string, cfg *Config) ([]byte, error) {
 }
 
 // GenerateToFile creates a QR code and writes it to the specified path.
-// Supports .svg and .png extensions.
+// The format is chosen from the file extension: .svg or .png.
 func GenerateToFile(data string, cfg *Config, path string) error {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".svg", "":
+		svg, err := Generate(data, cfg)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(path, svg, 0644)
+	case ".png":
+		png, err := GeneratePNG(data, cfg)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(path, png, 0644)
+	default:
+		return &UnsupportedFormatError{Format: strings.TrimPrefix(ext, ".")}
+	}
+}
+
+// GeneratePNG creates a QR code and returns it as PNG bytes.
+// If cfg is nil, DefaultConfig() is used.
+func GeneratePNG(data string, cfg *Config) ([]byte, error) {
 	svg, err := Generate(data, cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	ext := strings.ToLower(filepath.Ext(path))
-	if ext == ".png" {
-		// PNG not yet implemented
-		renderer := newRenderer(nil, cfg)
-		_, err := renderer.RenderPNG()
-		return err
+	if cfg == nil {
+		cfg = DefaultConfig()
 	}
-
-	return os.WriteFile(path, svg, 0644)
+	return rasterizeSVGToPNG(svg, cfg.Size, cfg.Size)
 }
