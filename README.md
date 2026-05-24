@@ -3,6 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/ahmedtahas/qr-gode.svg)](https://pkg.go.dev/github.com/ahmedtahas/qr-gode)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ahmedtahas/qr-gode)](https://goreportcard.com/report/github.com/ahmedtahas/qr-gode)
 [![CI](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml/badge.svg)](https://github.com/ahmedtahas/qr-gode/actions/workflows/go.yml)
+[![Coverage Status](https://coveralls.io/repos/github/ahmedtahas/qr-gode/badge.svg?branch=main)](https://coveralls.io/github/ahmedtahas/qr-gode?branch=main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![qr-gode banner](assets/social_preview_banner.png)

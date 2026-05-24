@@ -32,11 +32,10 @@ jobs:
           go test -v -race -covermode=atomic -coverprofile=coverage.out -coverpkg="$PKGS" ./...
       - name: Coverage summary
         run: go tool cover -func=coverage.out | tail -1
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage to Coveralls
+        uses: shogo82148/actions-goveralls@v1
         with:
-          files: ./coverage.out
-          fail_ci_if_error: false
+          path-to-profile: coverage.out
 
   lint:
     runs-on: ubuntu-latest
