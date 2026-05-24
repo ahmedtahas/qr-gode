@@ -62,8 +62,8 @@ func TestGFMul(t *testing.T) {
 	}
 
 	// Verify commutativity: a*b = b*a
-	for a := 0; a < 256; a++ {
-		for b := 0; b < 256; b++ {
+	for a := range 256 {
+		for b := range 256 {
 			ab := gfMul(byte(a), byte(b))
 			ba := gfMul(byte(b), byte(a))
 			if ab != ba {

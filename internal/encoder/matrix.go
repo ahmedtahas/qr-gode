@@ -88,7 +88,7 @@ func (m *Matrix) PlaceData(data []byte) {
 	// Convert bytes to bits
 	bits := make([]bool, len(data)*8)
 	for i, b := range data {
-		for j := 0; j < 8; j++ {
+		for j := range 8 {
 			bits[i*8+j] = (b>>(7-j))&1 == 1
 		}
 	}
@@ -105,7 +105,7 @@ func (m *Matrix) PlaceData(data []byte) {
 		// We determine direction based on which strip we're on
 		upward := ((m.size-1-col)/2)%2 == 0
 
-		for row := 0; row < m.size; row++ {
+		for row := range m.size {
 			actualRow := row
 			if upward {
 				actualRow = m.size - 1 - row
@@ -196,7 +196,7 @@ func (m *Matrix) placeAlignmentPattern(cx, cy int) {
 // reserveFormatInfo reserves the format information areas (filled in later).
 func (m *Matrix) reserveFormatInfo() {
 	// Around top-left finder
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		if m.Get(i, 8).Type == 0 { // not already set
 			m.Set(i, 8, Module{Type: ModuleFormatInfo, Reserved: true})
 		}
@@ -206,12 +206,12 @@ func (m *Matrix) reserveFormatInfo() {
 	}
 
 	// Below top-right finder
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		m.Set(m.size-1-i, 8, Module{Type: ModuleFormatInfo, Reserved: true})
 	}
 
 	// Right of bottom-left finder
-	for i := 0; i < 7; i++ {
+	for i := range 7 {
 		m.Set(8, m.size-1-i, Module{Type: ModuleFormatInfo, Reserved: true})
 	}
 }
@@ -219,15 +219,15 @@ func (m *Matrix) reserveFormatInfo() {
 // reserveVersionInfo reserves version information areas (version 7+).
 func (m *Matrix) reserveVersionInfo() {
 	// Bottom-left of top-right finder (6x3 block)
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 6 {
+		for j := range 3 {
 			m.Set(m.size-11+j, i, Module{Type: ModuleVersionInfo, Reserved: true})
 		}
 	}
 
 	// Top-right of bottom-left finder (3x6 block)
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 6 {
+		for j := range 3 {
 			m.Set(i, m.size-11+j, Module{Type: ModuleVersionInfo, Reserved: true})
 		}
 	}
@@ -274,19 +274,19 @@ func alignmentPatternPositions(version Version) []int {
 // placeSeparators places white separators around the 3 finder patterns.
 func (m *Matrix) placeSeparators() {
 	// Top-left: right edge (col 7) and bottom edge (row 7)
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		m.Set(7, i, Module{Type: ModuleFinderSeparator, Reserved: true}) // right edge
 		m.Set(i, 7, Module{Type: ModuleFinderSeparator, Reserved: true}) // bottom edge
 	}
 
 	// Top-right: left edge (col size-8) and bottom edge (row 7)
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		m.Set(m.size-8, i, Module{Type: ModuleFinderSeparator, Reserved: true})   // left edge
 		m.Set(m.size-8+i, 7, Module{Type: ModuleFinderSeparator, Reserved: true}) // bottom edge
 	}
 
 	// Bottom-left: right edge (col 7) and top edge (row size-8)
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		m.Set(7, m.size-8+i, Module{Type: ModuleFinderSeparator, Reserved: true}) // right edge
 		m.Set(i, m.size-8, Module{Type: ModuleFinderSeparator, Reserved: true})   // top edge
 	}

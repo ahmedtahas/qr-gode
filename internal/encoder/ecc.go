@@ -324,7 +324,7 @@ func GenerateECC(data []byte, eccInfo ECCInfo) ([][]byte, [][]byte) {
 	blockIndex := 0
 
 	// Process Group 1 blocks
-	for i := 0; i < eccInfo.Group1.Count; i++ {
+	for range eccInfo.Group1.Count {
 		size := eccInfo.Group1.DataCodewords
 		dataBlocks[blockIndex] = make([]byte, size)
 		copy(dataBlocks[blockIndex], data[offset:offset+size])
@@ -334,7 +334,7 @@ func GenerateECC(data []byte, eccInfo ECCInfo) ([][]byte, [][]byte) {
 	}
 
 	// Process Group 2 blocks
-	for i := 0; i < eccInfo.Group2.Count; i++ {
+	for range eccInfo.Group2.Count {
 		size := eccInfo.Group2.DataCodewords
 		dataBlocks[blockIndex] = make([]byte, size)
 		copy(dataBlocks[blockIndex], data[offset:offset+size])
@@ -365,7 +365,7 @@ func InterleaveBlocks(dataBlocks, eccBlocks [][]byte) []byte {
 	}
 
 	// Interleave data: take byte i from each block, then byte i+1, etc.
-	for i := 0; i < maxDataLen; i++ {
+	for i := range maxDataLen {
 		for _, block := range dataBlocks {
 			if i < len(block) {
 				result = append(result, block[i])
@@ -374,7 +374,7 @@ func InterleaveBlocks(dataBlocks, eccBlocks [][]byte) []byte {
 	}
 
 	// Interleave ECC: same pattern
-	for i := 0; i < maxEccLen; i++ {
+	for i := range maxEccLen {
 		for _, block := range eccBlocks {
 			if i < len(block) {
 				result = append(result, block[i])

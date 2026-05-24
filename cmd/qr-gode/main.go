@@ -10,8 +10,16 @@ import (
 	"github.com/ahmedtahas/qr-gode/internal/colors"
 )
 
+// Set by GoReleaser via -ldflags. Defaults to "dev" for `go install` builds.
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	// Flags
+	showVersion := flag.Bool("version", false, "Print version and exit")
 	output := flag.String("o", "qrcode.svg", "Output file path")
 	size := flag.Int("size", 512, "Output size in pixels")
 	shape := flag.String("shape", "square", "Module shape: square, circle, rounded, diamond, dot, star, heart")
@@ -46,6 +54,11 @@ func main() {
 	}
 
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("qr-gode %s (commit %s, built %s)\n", version, commit, date)
+		return
+	}
 
 	if flag.NArg() < 1 {
 		flag.Usage()

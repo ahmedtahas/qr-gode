@@ -14,7 +14,7 @@ func init() {
 	// Initialize exp and log tables for GF(2^8)
 	// Primitive polynomial: x^8 + x^4 + x^3 + x^2 + 1 = 0x11D
 	x := 1
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		expTable[i] = byte(x)
 		if i < 255 {
 			logTable[x] = byte(i)
@@ -66,11 +66,11 @@ func GeneratorPolynomial(eccCount int) []byte {
 	gen[eccCount] = 1 // Constant term at the end
 
 	// Multiply by (x + α^i) for i = 0 to eccCount-1
-	for i := 0; i < eccCount; i++ {
+	for i := range eccCount {
 		alphaI := expTable[i]
 		// Multiply polynomial by (x + α^i)
 		// Work from left to right (high degree to low)
-		for j := 0; j < eccCount; j++ {
+		for j := range eccCount {
 			gen[j] = gfMul(gen[j], alphaI) ^ gen[j+1]
 		}
 		gen[eccCount] = gfMul(gen[eccCount], alphaI)
@@ -97,7 +97,7 @@ func ReedSolomonEncode(data []byte, eccCount int) []byte {
 
 		// XOR with generator polynomial scaled by coef
 		if coef != 0 {
-			for j := 0; j < eccCount; j++ {
+			for j := range eccCount {
 				result[j] ^= gfMul(gen[j+1], coef)
 			}
 		}

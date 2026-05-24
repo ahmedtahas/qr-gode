@@ -41,8 +41,8 @@ func (mp MaskPattern) ShouldFlip(x, y int) bool {
 // Only data modules are affected, not function patterns.
 func ApplyMask(matrix *Matrix, pattern MaskPattern) {
 	size := matrix.Size()
-	for y := 0; y < size; y++ {
-		for x := 0; x < size; x++ {
+	for y := range size {
+		for x := range size {
 			mod := matrix.Get(x, y)
 			if !mod.Reserved && pattern.ShouldFlip(x, y) {
 				mod.Dark = !mod.Dark
@@ -64,7 +64,7 @@ func penaltyRule1(matrix *Matrix) int {
 	size := matrix.Size()
 
 	// Check rows
-	for y := 0; y < size; y++ {
+	for y := range size {
 		count := 1
 		for x := 1; x < size; x++ {
 			if matrix.Get(x, y).Dark == matrix.Get(x-1, y).Dark {
@@ -82,7 +82,7 @@ func penaltyRule1(matrix *Matrix) int {
 	}
 
 	// Check columns
-	for x := 0; x < size; x++ {
+	for x := range size {
 		count := 1
 		for y := 1; y < size; y++ {
 			if matrix.Get(x, y).Dark == matrix.Get(x, y-1).Dark {
@@ -107,8 +107,8 @@ func penaltyRule2(matrix *Matrix) int {
 	penalty := 0
 	size := matrix.Size()
 
-	for y := 0; y < size-1; y++ {
-		for x := 0; x < size-1; x++ {
+	for y := range size-1 {
+		for x := range size-1 {
 			dark := matrix.Get(x, y).Dark
 			if matrix.Get(x+1, y).Dark == dark &&
 				matrix.Get(x, y+1).Dark == dark &&
@@ -129,16 +129,16 @@ func penaltyRule3(matrix *Matrix) int {
 	// Pattern: dark-light-dark-dark-dark-light-dark (1011101)
 	// With 4 light modules on one side: 00001011101 or 10111010000
 
-	for y := 0; y < size; y++ {
-		for x := 0; x < size-10; x++ {
+	for y := range size {
+		for x := range size-10 {
 			if matchesFinderPattern(matrix, x, y, true) {
 				penalty += 40
 			}
 		}
 	}
 
-	for x := 0; x < size; x++ {
-		for y := 0; y < size-10; y++ {
+	for x := range size {
+		for y := range size-10 {
 			if matchesFinderPattern(matrix, x, y, false) {
 				penalty += 40
 			}
@@ -157,7 +157,7 @@ func matchesFinderPattern(matrix *Matrix, x, y int, horizontal bool) bool {
 	matches1 := true
 	matches2 := true
 
-	for i := 0; i < 11; i++ {
+	for i := range 11 {
 		var dark bool
 		if horizontal {
 			dark = matrix.Get(x+i, y).Dark
@@ -181,8 +181,8 @@ func penaltyRule4(matrix *Matrix) int {
 	darkCount := 0
 	total := size * size
 
-	for y := 0; y < size; y++ {
-		for x := 0; x < size; x++ {
+	for y := range size {
+		for x := range size {
 			if matrix.Get(x, y).Dark {
 				darkCount++
 			}

@@ -91,7 +91,7 @@ func TestGenerateECCMultipleBlocks(t *testing.T) {
 	}
 
 	// Group 1 blocks should be 15 bytes
-	for i := 0; i < eccInfo.Group1.Count; i++ {
+	for i := range eccInfo.Group1.Count {
 		if len(dataBlocks[i]) != 15 {
 			t.Errorf("Group1 block %d has %d bytes, want 15", i, len(dataBlocks[i]))
 		}

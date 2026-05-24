@@ -222,6 +222,47 @@ func TestGetConfig(t *testing.T) {
 	}
 }
 
+func TestLogoWidth(t *testing.T) {
+	qr := New("test").LogoWidth(120)
+	if qr.config.Logo == nil {
+		t.Fatal("Logo config not initialized")
+	}
+	if qr.config.Logo.Width != 120 {
+		t.Errorf("Width = %d, want 120", qr.config.Logo.Width)
+	}
+}
+
+func TestLogoHeight(t *testing.T) {
+	qr := New("test").LogoHeight(80)
+	if qr.config.Logo == nil {
+		t.Fatal("Logo config not initialized")
+	}
+	if qr.config.Logo.Height != 80 {
+		t.Errorf("Height = %d, want 80", qr.config.Logo.Height)
+	}
+}
+
+func TestLogoBackground(t *testing.T) {
+	qr := New("test").LogoBackground("transparent")
+	if qr.config.Logo == nil {
+		t.Fatal("Logo config not initialized")
+	}
+	if qr.config.Logo.Background != "transparent" {
+		t.Errorf("Background = %q, want transparent", qr.config.Logo.Background)
+	}
+}
+
+func TestUnsupportedFormatError(t *testing.T) {
+	err := &UnsupportedFormatError{Format: "jpg"}
+	got := err.Error()
+	if !strings.Contains(got, "jpg") {
+		t.Errorf("error message %q should contain format name", got)
+	}
+	if !strings.Contains(got, "svg") || !strings.Contains(got, "png") {
+		t.Errorf("error message %q should list supported formats", got)
+	}
+}
+
 func TestLogoMode(t *testing.T) {
 	qr := New("test")
 	qr.LogoMode(LogoOverlay)

@@ -2,6 +2,7 @@ package qrgode
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -112,11 +113,7 @@ func TestCorruptedInputs(t *testing.T) {
 		{
 			name: "very long unicode",
 			fn: func() ([]byte, error) {
-				data := ""
-				for i := 0; i < 500; i++ {
-					data += "日本語"
-				}
-				return New(data).SVG()
+				return New(strings.Repeat("日本語", 500)).SVG()
 			},
 		},
 		{

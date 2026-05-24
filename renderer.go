@@ -190,8 +190,8 @@ func (r *renderer) drawModulesShapes(buf *bytes.Buffer, shape shapes.Shape, modu
 	fmt.Fprintf(buf, `<path fill="%s" d="`, moduleFill)
 
 	shapePath := shape.SVGPath()
-	for y := 0; y < matrixSize; y++ {
-		for x := 0; x < matrixSize; x++ {
+	for y := range matrixSize {
+		for x := range matrixSize {
 			// Skip modules in the logo zone
 			if hasLogoZone && x >= logoMinX && x <= logoMaxX && y >= logoMinY && y <= logoMaxY {
 				continue
@@ -243,7 +243,7 @@ func (r *renderer) renderWithImages() ([]byte, error) {
 
 	// Render alignment patterns
 	if alignImg != "" {
-		r.renderAlignmentImages(&buf, alignImg, finderImg != "", matrixSize)
+		r.renderAlignmentImages(&buf, alignImg, matrixSize)
 	}
 
 	// Render custom image modules
@@ -370,7 +370,7 @@ func (r *renderer) renderFinderImages(buf *bytes.Buffer, finderImg string, matri
 	buf.WriteString("\n")
 }
 
-func (r *renderer) renderAlignmentImages(buf *bytes.Buffer, alignImg string, hasFinderImg bool, matrixSize int) {
+func (r *renderer) renderAlignmentImages(buf *bytes.Buffer, alignImg string, matrixSize int) {
 	quietZone := r.config.QuietZone
 	totalModules := matrixSize + 2*quietZone
 	moduleSize := float64(r.config.Size) / float64(totalModules)
@@ -403,9 +403,9 @@ func (r *renderer) renderImageModules(buf *bytes.Buffer, moduleImg, finderImg, a
 	moduleSize := float64(r.config.Size) / float64(totalModules)
 
 	// Render regular modules (skip finder and alignment areas if custom images provided)
-	for y := 0; y < matrixSize; y++ {
-		for x := 0; x < matrixSize; x++ {
-			if r.shouldSkipModule(x, y, moduleImg, finderImg, alignImg, hasLogoZone, logoMinX, logoMinY, logoMaxX, logoMaxY) {
+	for y := range matrixSize {
+		for x := range matrixSize {
+			if r.shouldSkipModule(x, y, finderImg, alignImg, hasLogoZone, logoMinX, logoMinY, logoMaxX, logoMaxY) {
 				continue
 			}
 
@@ -419,7 +419,7 @@ func (r *renderer) renderImageModules(buf *bytes.Buffer, moduleImg, finderImg, a
 	}
 }
 
-func (r *renderer) shouldSkipModule(x, y int, moduleImg, finderImg, alignImg string, hasLogoZone bool, logoMinX, logoMinY, logoMaxX, logoMaxY int) bool {
+func (r *renderer) shouldSkipModule(x, y int, finderImg, alignImg string, hasLogoZone bool, logoMinX, logoMinY, logoMaxX, logoMaxY int) bool {
 	// Skip modules in the logo zone
 	if hasLogoZone && x >= logoMinX && x <= logoMaxX && y >= logoMinY && y <= logoMaxY {
 		return true
@@ -641,9 +641,9 @@ func processPathCommand(cmd, args string, curX, curY, tx, ty, scale float64) (st
 	case "M", "L":
 		return handleMoveLine(cmdUpper, args, curX, curY, tx, ty, scale, isRelative)
 	case "H":
-		return handleHorizontal(args, curX, curY, tx, ty, scale, isRelative)
+		return handleHorizontal(args, curX, curY, tx, scale, isRelative)
 	case "V":
-		return handleVertical(args, curX, curY, tx, ty, scale, isRelative)
+		return handleVertical(args, curX, curY, ty, scale, isRelative)
 	case "A":
 		return handleArc(args, curX, curY, tx, ty, scale, isRelative)
 	case "C":
@@ -673,7 +673,7 @@ func handleMoveLine(cmd, args string, curX, curY, tx, ty, scale float64, isRelat
 	return fmt.Sprintf("%s%.2f %.2f ", cmd, x, y), x, y
 }
 
-func handleHorizontal(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+func handleHorizontal(args string, curX, curY, tx, scale float64, isRelative bool) (string, float64, float64) {
 	parts := splitNumbers(args)
 	if len(parts) < 1 {
 		return "", curX, curY
@@ -687,7 +687,7 @@ func handleHorizontal(args string, curX, curY, tx, ty, scale float64, isRelative
 	return fmt.Sprintf("L%.2f %.2f ", x, curY), x, curY
 }
 
-func handleVertical(args string, curX, curY, tx, ty, scale float64, isRelative bool) (string, float64, float64) {
+func handleVertical(args string, curX, curY, ty, scale float64, isRelative bool) (string, float64, float64) {
 	parts := splitNumbers(args)
 	if len(parts) < 1 {
 		return "", curX, curY

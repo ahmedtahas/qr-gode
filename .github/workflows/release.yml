@@ -5,15 +5,39 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
-  proxy:
+  goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Go Proxy
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  proxy:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Go module proxy
         run: |
           TAG=${GITHUB_REF#refs/tags/}
           echo "Triggering proxy for $TAG"
-          # Retry a few times in case of transient network issues
           for i in {1..3}; do
             curl -f "https://proxy.golang.org/github.com/ahmedtahas/qr-gode/@v/$TAG.info" && break || sleep 5
           done

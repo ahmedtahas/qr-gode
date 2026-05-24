@@ -27,7 +27,9 @@ jobs:
         with:
           go-version: '1.25'
       - name: Test with coverage
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        run: |
+          PKGS=$(go list ./... | grep -v '/cmd/' | paste -sd, -)
+          go test -v -race -covermode=atomic -coverprofile=coverage.out -coverpkg="$PKGS" ./...
       - name: Coverage summary
         run: go tool cover -func=coverage.out | tail -1
       - name: Upload coverage to Codecov

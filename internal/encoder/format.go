@@ -103,8 +103,8 @@ func PlaceVersionInfo(matrix *Matrix, version Version, info uint32) {
 	// 18 bits: 6 rows x 3 columns
 	// Location 1: Bottom-left of top-right finder (columns size-11 to size-9, rows 0-5)
 	// Location 2: Top-right of bottom-left finder (rows size-11 to size-9, columns 0-5)
-	for i := 0; i < 6; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 6 {
+		for j := range 3 {
 			bitIndex := i*3 + j
 			bit := (info >> bitIndex) & 1
 
