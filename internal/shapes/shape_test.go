@@ -63,7 +63,7 @@ func TestParsePath(t *testing.T) {
 		{"M0 0h1v1z", false},
 		{"m0 0l1 1", false},
 		{"", true},
-		{"L0 0", true},  // doesn't start with M
+		{"L0 0", true}, // doesn't start with M
 		{"0 0L1 1", true},
 	}
 	for _, tc := range cases {

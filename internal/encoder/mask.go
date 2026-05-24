@@ -107,8 +107,8 @@ func penaltyRule2(matrix *Matrix) int {
 	penalty := 0
 	size := matrix.Size()
 
-	for y := range size-1 {
-		for x := range size-1 {
+	for y := range size - 1 {
+		for x := range size - 1 {
 			dark := matrix.Get(x, y).Dark
 			if matrix.Get(x+1, y).Dark == dark &&
 				matrix.Get(x, y+1).Dark == dark &&
@@ -130,7 +130,7 @@ func penaltyRule3(matrix *Matrix) int {
 	// With 4 light modules on one side: 00001011101 or 10111010000
 
 	for y := range size {
-		for x := range size-10 {
+		for x := range size - 10 {
 			if matchesFinderPattern(matrix, x, y, true) {
 				penalty += 40
 			}
@@ -138,7 +138,7 @@ func penaltyRule3(matrix *Matrix) int {
 	}
 
 	for x := range size {
-		for y := range size-10 {
+		for y := range size - 10 {
 			if matchesFinderPattern(matrix, x, y, false) {
 				penalty += 40
 			}
